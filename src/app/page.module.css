@@ -21,28 +21,22 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem; /* Espacio vertical entre imágenes */
 }
 
-/* --- RESPONSIVIDAD --- */
-
-/* Pantallas medianas/Laptop (oculta la 4ta columna si se reduce la pantalla) */
 @media (max-width: 1100px) {
   .col3 {
     display: none;
   }
 }
 
-/* Tablets (pasa a 2 columnas) */
 @media (max-width: 768px) {
-  .col2 {
+  .col3 {
     display: none;
   }
 }
 
-/* Celulares (pasa a 1 columna) */
 @media (max-width: 480px) {
-  .col1 {
+  .col2 {
     display: none;
   }
 }

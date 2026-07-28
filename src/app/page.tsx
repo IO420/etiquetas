@@ -114,7 +114,7 @@ const TEMPLATES:TemplateItem[] = [
     id: 'flores-stitch morado',
     title: 'Portada Flores & Stitch',
     layersData: {
-            canvasWidth:600,
+      canvasWidth:600,
       canvasHeight:850,
       layers: [
         { type: 'image', image: 'wallPaperFlowers.webp', position: { x: 0, y: 0 } },
@@ -127,6 +127,24 @@ const TEMPLATES:TemplateItem[] = [
         { type: 'text', text: 'Grado:', position: { x: 300, y: 610 }, fontSize: 35, fontWeight: 'bold' },
         { type: 'rectangle', position: { x: 230, y: 730 }, fillColor: '#fff', height: 50, width: 350, borderRadius: 30, strokeWidth: 2, strokeColor: '#000', dash: [5, 5] },
         { type: 'text', text: 'Maestro:', position: { x: 300, y: 710 }, fontSize: 35, fontWeight: 'bold' },
+      ],
+    },
+  },
+      {
+    id: 'demondHunters',
+    title: 'Portada Flores & Stitch',
+    layersData: {
+      canvasWidth:400,
+      canvasHeight:200,
+      layers: [
+        { type: 'image', image: 'demondHuntersBack.webp', position: { x: 0, y: 0 }, width: 400 },
+        { type: 'rectangle', position: { x: 30, y: 30 }, fillColor: '#fff', height:145, width: 345, borderRadius: 30 },
+        { type: 'image', image: 'gerrerasKpop3.webp', position: { x: 300, y: 0 }, width: 100 },
+        { type: 'rectangle', position: { x: 50, y: 120 }, fillColor: '#cba4d3', height: 40, width: 200, borderRadius: 30 },
+        { type: 'image', image: 'gerrerasKpopAbraso3.webp', position: { x: 0, y: 90 }, width: 150 },
+        { type: 'rectangle', position: { x: 260, y: 120 }, fillColor: '#b5dffe', height: 40, width: 100, borderRadius: 30 },
+
+        { type: 'text', text: 'Grado', position: { x: 508, y: 228 }, fontSize: 35, fontWeight: 'bold' },
       ],
     },
   },
