@@ -1,0 +1,168 @@
+.link {
+  display: flex;
+  align-items: center;
+  margin: 5px 0px;
+}
+
+.containerLink{
+  display: flex;
+}
+
+.logo {
+  position: relative;
+  z-index: 3;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.logoContainerUnam {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  aspect-ratio: 1/1;
+}
+
+.logoContainer {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  aspect-ratio: 250/70;
+}
+
+.cedetecContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  z-index: -1;
+}
+
+.cedetecContainer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #f9f9f9, rgba(128, 128, 128, 0));
+}
+
+.yellowPart {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: -20px;
+  width: 100%;
+  height: 25px;
+  background: linear-gradient(to right, #015cb8 15%, #6588DA 60%, #fff 100%);
+  transform: skew(-45deg);
+  z-index: 0;
+}
+
+.header {
+  width: 100vw;
+  background-color: #fff;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  padding: 0 10px;
+  position: fixed;
+  z-index: 2;
+  align-items: end;
+}
+
+.header::after {
+  content: "";
+  top: 0;
+  left: -60px;
+  position: absolute;
+  background-color: #003e79;
+  height: 100%;
+  min-width: 350px;
+  transform: skew(45deg);
+  z-index: 2;
+}
+
+.header::before {
+  content: "";
+  top: 0;
+  left: -40px;
+  position: absolute;
+  background-color: rgb(1, 92, 184);
+  height: 100%;
+  width: 10%;
+  min-width: 350px;
+  transform: skew(45deg);
+  z-index: 2;
+}
+
+.containerBarNav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding-left: 110px;
+  max-height: 60%;
+}
+
+@media (max-height: 550px) {
+  .containerBarNav {
+    max-height: 70%;
+  }
+
+  .yellowPart {
+    height: 15px;
+  }
+
+  .logoContainer {
+    min-width: 150px;
+    aspect-ratio: 250/70;
+  }
+
+  .link {
+    display: flex;
+    align-items: center;
+    margin: 5px 2px;
+  }
+
+  .header::after {
+    left: -60px;
+    min-width: 300px;
+  }
+
+  .header::before {
+    left: -40px;
+    width: 10%;
+    min-width: 300px;
+  }
+
+}
+
+@media (max-width: 800px) {
+  .yellowPart {
+    left: 0;
+    background: #015cb8;
+    transform: skew(0deg);
+  }
+
+  .header::after {
+    left: -100px;
+  }
+
+  .header::before {
+    left: -80px;
+  }
+}
+
+@media (max-width: 400px) {
+  .header::after {
+    min-width: 100%;
+    transform: skew(25deg);
+  }
+
+  .header::before {
+    min-width: 100%;
+    transform: skew(25deg);
+  }
+
+  .containerBarNav {
+    padding-left: 0;
+  }
+}
