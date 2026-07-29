@@ -18,31 +18,29 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
+    let isMounted = true;
+
     const fetchPreview = async () => {
       try {
-        const response = await axios.post(
-          'http://localhost:3001/image/label',
-          item.layersData,
-          { responseType: 'blob' }
+        const response = await axios.post<{ url: string }>(
+          'http://localhost:3001/image/label/preview',
+          item.layersData
         );
-        
-        if (active) {
-          const url = URL.createObjectURL(response.data);
-          setImageUrl(url);
+
+        if (isMounted) {
+          setImageUrl(response.data.url);
         }
       } catch (error) {
         console.error('Error al cargar vista previa:', error);
       } finally {
-        if (active) setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchPreview();
 
     return () => {
-      active = false;
-      if (imageUrl) URL.revokeObjectURL(imageUrl);
+      isMounted = false;
     };
   }, [item]);
 
@@ -51,7 +49,12 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
       {loading ? (
         <div className={styles.skeleton}>Cargando plantilla...</div>
       ) : (
-        <img src={imageUrl || ''} alt={item.title} className={styles.cardImage} />
+        <img
+          src={imageUrl || ''}
+          alt={item.title}
+          className={styles.cardImage}
+          loading="lazy"
+        />
       )}
       <div className={styles.overlay}>
         <span>{item.title}</span>

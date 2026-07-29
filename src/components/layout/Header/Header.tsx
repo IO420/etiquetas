@@ -32,13 +32,7 @@ export default async function Header() {
           className={`${header.center} ${header.link}`}
         >
           <div className={header.logoContainerUnam}>
-            <Image
-              className={header.logo}
-              src="/unam-escudo-azul.png"
-              alt="Logo FES"
-              fill
-              style={{ objectFit: "contain" }}
-            />
+
           </div>
         </Link>
         <Link
@@ -47,13 +41,6 @@ export default async function Header() {
           className={`${header.center} ${header.link}`}
         >
           <div className={header.logoContainer}>
-            <Image
-              className={header.logo}
-              src="/logo_fes.png"
-              alt="Logo FES"
-              fill
-              style={{ objectFit: "contain" }}
-            />
           </div>
         </Link>
       </div>
