@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import styles from './ImageCard.module.css';
+import { useEffect, useState, useMemo } from "react";
+import axios from "axios";
+import Image from "next/image";
+import styles from "./ImageCard.module.css";
 
 interface ImageCardProps {
   item: {
-    id: string;
+    id_templates: number;
     title: string;
     layersData: any;
   };
@@ -15,7 +16,7 @@ interface ImageCardProps {
 
 export default function ImageCard({ item, onClick }: ImageCardProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,17 +24,18 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
     const fetchPreview = async () => {
       try {
         const response = await axios.post<{ url: string }>(
-          'http://localhost:3001/image/label/preview',
-          item.layersData
+          "http://localhost:3001/image/label/preview",
+          {
+            ...item.layersData,
+            templateId: item.id_templates,
+          }
         );
 
         if (isMounted) {
           setImageUrl(response.data.url);
         }
       } catch (error) {
-        console.error('Error al cargar vista previa:', error);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error("Error al cargar vista previa:", error);
       }
     };
 
@@ -44,18 +46,46 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
     };
   }, [item]);
 
+  // Extraer width y height del string de la URL
+  const dimensions = useMemo(() => {
+    if (!imageUrl) return null;
+
+    const match = imageUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+$/);
+    if (match) {
+      return {
+        width: parseInt(match[1], 10),
+        height: parseInt(match[2], 10),
+      };
+    }
+    return null;
+  }, [imageUrl]);
+
+  const aspectRatio = dimensions
+    ? `${dimensions.width} / ${dimensions.height}`
+    : "600 / 850";
+
   return (
-    <div className={styles.card} onClick={onClick}>
-      {loading ? (
-        <div className={styles.skeleton}>Cargando plantilla...</div>
-      ) : (
-        <img
-          src={imageUrl || ''}
+    <div className={styles.card} onClick={onClick} style={{ aspectRatio }}>
+      <div
+        className={`${styles.skeleton} ${
+          isImageLoaded ? styles.skeletonHidden : ""
+        }`}
+      />
+
+      {imageUrl && (
+        <Image
+          src={imageUrl}
           alt={item.title}
-          className={styles.cardImage}
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className={`${styles.cardImage} ${
+            isImageLoaded ? styles.visible : styles.hidden
+          }`}
+          onLoad={() => setIsImageLoaded(true)}
+          unoptimized
         />
       )}
+
       <div className={styles.overlay}>
         <span>{item.title}</span>
       </div>

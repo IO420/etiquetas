@@ -6,7 +6,7 @@ import styles from './page.module.css';
 import ModalDownload from '@/components/ModalDownload';
 
 export interface TemplateItem {
-  id: string;
+  id_templates: number;
   title: string;
   layersData: {
     canvasWidth?: number;
@@ -18,7 +18,7 @@ export interface TemplateItem {
 //just to test
 const TEMPLATES:TemplateItem[] = [
   {
-    id: 'flores-stitch',
+    id_templates: 1,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:600,
@@ -38,7 +38,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
   {
-    id: 'tiburon-leonardo',
+    id_templates: 2,
     title: 'Etiqueta Tiburón Leonardo',
     layersData: {
       canvasWidth:600,
@@ -51,7 +51,7 @@ const TEMPLATES:TemplateItem[] = [
     }
   },
     {
-    id: 'flores-stitch azul',
+    id_templates: 3,
     title: 'Portada Flores & Stitch',
     layersData: {
             canvasWidth:600,
@@ -71,7 +71,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
     {
-    id: 'flores-stitch verde',
+    id_templates: 4,
     title: 'Portada Flores & Stitch',
     layersData: {
             canvasWidth:600,
@@ -91,7 +91,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
     {
-    id: 'flores-stitch rojo',
+    id_templates: 5,
     title: 'Portada Flores & Stitch',
     layersData: {
             canvasWidth:600,
@@ -111,7 +111,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
     {
-    id: 'flores-stitch morado',
+    id_templates: 6,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:600,
@@ -131,7 +131,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
       {
-    id: 'demondHunters',
+    id_templates:7,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:400,
@@ -149,7 +149,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
       {
-    id: 'flores-stitch nose',
+    id_templates: 8,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:600,
@@ -169,7 +169,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
         {
-    id: 'toyStoryBudy',
+    id_templates: 9,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:600,
@@ -186,7 +186,7 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
       {
-    id: 'flores-stitch nose',
+    id_templates: 10,
     title: 'Portada Flores & Stitch',
     layersData: {
       canvasWidth:600,
@@ -210,13 +210,12 @@ export default function Home() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
 
   return (
-    <div className={styles.page}>
       <section className={styles.main}>
         <h1 className={styles.title}>Plantillas de Etiquetas</h1>
 
         <div className={styles.masonryContainer}>
           {TEMPLATES.map((item) => (
-            <div key={item.id} className={styles.masonryItem}>
+            <div key={item.id_templates} className={styles.masonryItem}>
               <ImageCard
                 item={item}
                 onClick={() => setSelectedTemplate(item)}
@@ -232,7 +231,6 @@ export default function Home() {
           />
         )}
       </section>
-    </div>
   );
 }
 //IO
