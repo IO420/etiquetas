@@ -13,10 +13,10 @@
   background: #fff;
   padding: 2rem;
   border-radius: 16px;
-  max-width: 450px;
-  width: 90%;
+  width: max(450px, 50%);
+  max-height: 90%;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   font-family: sans-serif;
 }
 
@@ -36,7 +36,8 @@
   margin-top: 1.5rem;
 }
 
-.pngBtn, .pdfBtn {
+.pngBtn,
+.pdfBtn {
   flex: 1;
   padding: 12px;
   border: none;
@@ -56,7 +57,28 @@
   color: white;
 }
 
-.pngBtn:disabled, .pdfBtn:disabled {
+.pngBtn:disabled,
+.pdfBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.flexSection {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.containerInputs {
+  min-width: 50%;
+}
+
+@media (max-width: 500px) {
+  .flexSection {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .modal {
+    overflow: auto;
+  }
 }

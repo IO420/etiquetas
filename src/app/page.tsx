@@ -27,13 +27,16 @@ const TEMPLATES:TemplateItem[] = [
         { type: 'image', image: 'wallPaperFlowersOrange.webp', position: { x: 0, y: 0 } },
         { type: 'wave', position: { x: -280, y: -8 }, fillColor: '#ff751f', strokeWidth: 6 },
         { type: 'image', image: 'stichSentadoSobreFlores.webp', position: { x: 180, y: -110 }, width: 500, height: 760 },
-        { type: 'text', text: 'Materia', position: { x: 75, y: 400 }, color: '#fff', fontSize: 90, rotation: -90 },
+        { type: 'text', text: 'Materia', position: { x: 75, y: 425 }, color: '#fff', fontSize: 90, rotation: -90, label:"Materia" },
         { type: 'rectangle', position: { x: 230, y: 530 }, fillColor: '#fff', height: 50, width: 350, borderRadius: 30, strokeWidth: 2, strokeColor: '#000', dash: [5, 5] },
         { type: 'text', text: 'Nombre:', position: { x: 300, y: 510 }, fontSize: 35, fontWeight: 'bold' },
+        { type: 'text', text: '', position: { x: 250, y: 552 }, fontSize: 35, fontWeight: 'normal',textAlign:"left",label:"Nombre" },
         { type: 'rectangle', position: { x: 230, y: 630 }, fillColor: '#fff', height: 50, width: 350, borderRadius: 30, strokeWidth: 2, strokeColor: '#000', dash: [5, 5] },
         { type: 'text', text: 'Grado:', position: { x: 300, y: 610 }, fontSize: 35, fontWeight: 'bold' },
+        { type: 'text', text: '', position: { x: 250, y: 652 }, fontSize: 35, fontWeight: 'bold',textAlign:"left",label:"Grado" },      
         { type: 'rectangle', position: { x: 230, y: 730 }, fillColor: '#fff', height: 50, width: 350, borderRadius: 30, strokeWidth: 2, strokeColor: '#000', dash: [5, 5] },
         { type: 'text', text: 'Maestro:', position: { x: 300, y: 710 }, fontSize: 35, fontWeight: 'bold' },
+        { type: 'text', text: '', position: { x: 250, y: 752 }, fontSize: 35, fontWeight: 'bold',textAlign:"left",label:"Maestro" },
       ],
     },
   },
@@ -45,8 +48,8 @@ const TEMPLATES:TemplateItem[] = [
       canvasHeight:350,
       layers: [
         { type: 'image', image: 'shark.webp', position: { x: 150, y: 20 }, width: 300, height: 260 },
-        { type: 'text', text: 'LEONARDO', textFont: 'Shark.ttf', position: { x: 300, y: 270 }, color: '#005580', fontSize: 90,strokeWidth:8 },
-        { type: 'text', text: 'Mendez Saucedo', textFont: 'Hickory Jack.ttf', position: { x: 380, y: 310 }, fontSize: 45,strokeWidth:8 }
+        { type: 'text', text: 'LEONARDO', textFont: 'Shark.ttf', position: { x: 300, y: 270 }, color: '#005580', fontSize: 90,strokeWidth:8,label:"Nombre" },
+        { type: 'text', text: 'Mendez Saucedo', textFont: 'Hickory Jack.ttf', position: { x: 380, y: 310 }, fontSize: 45,strokeWidth:8,label:"Apellidos" }
       ]
     }
   },
@@ -227,7 +230,7 @@ export default function Home() {
         {selectedTemplate && (
           <ModalDownload
             item={selectedTemplate}
-            onClose={() => setSelectedTemplate(null)}
+            onClick={() => setSelectedTemplate(null)}
           />
         )}
       </section>

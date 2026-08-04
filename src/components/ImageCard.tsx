@@ -5,7 +5,7 @@ import axios from "axios";
 import Image from "next/image";
 import styles from "./ImageCard.module.css";
 
-interface ImageCardProps {
+export interface ImageCardProps {
   item: {
     id_templates: number;
     title: string;
@@ -21,6 +21,8 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
   useEffect(() => {
     let isMounted = true;
 
+    setIsImageLoaded(false);
+
     const fetchPreview = async () => {
       try {
         const response = await axios.post<{ url: string }>(
@@ -28,11 +30,11 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
           {
             ...item.layersData,
             templateId: item.id_templates,
-          }
+          },
         );
 
         if (isMounted) {
-          setImageUrl(response.data.url);
+          setImageUrl(`${response.data.url}?t=${Date.now()}`);
         }
       } catch (error) {
         console.error("Error al cargar vista previa:", error);
@@ -46,11 +48,11 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
     };
   }, [item]);
 
-  // Extraer width y height del string de la URL
+  // get width y height
   const dimensions = useMemo(() => {
     if (!imageUrl) return null;
 
-    const match = imageUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+$/);
+    const match = imageUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+(\?.*)?$/);
     if (match) {
       return {
         width: parseInt(match[1], 10),
@@ -74,6 +76,7 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
 
       {imageUrl && (
         <Image
+          key={imageUrl}
           src={imageUrl}
           alt={item.title}
           fill
