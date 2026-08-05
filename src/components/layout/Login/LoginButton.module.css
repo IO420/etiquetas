@@ -1,0 +1,13 @@
+.loginButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
+  color: #455894;
+  background-color: #fff;
+  font-weight: bold;
+  gap: 10px;
+  cursor: pointer;
+}

@@ -12,7 +12,7 @@
 }
 
 .masonryContainer {
-  columns: 4;
+  columns: 5;
   column-gap: 1.25rem;
 }
 
@@ -23,13 +23,13 @@
 
 @media (max-width: 1100px) {
   .masonryContainer {
-    columns: 3;
+    columns: 4;
   }
 }
 
 @media (max-width: 768px) {
   .masonryContainer {
-    columns: 2;
+    columns: 3;
   }
 }
 

@@ -13,6 +13,7 @@
 * {
   color: #333333;
   font-size: 1.4rem;
+  font-family: var(--font-inter), sans-serif;
 }
 
 *,
@@ -37,7 +38,6 @@ body {
   grid-template-rows: 1fr auto;
   min-height: 100dvh;
   width: 100vw;
-  overflow: hidden;
   background-color: #f9f9f9;
 }
 
@@ -50,7 +50,7 @@ main {
 
 main::before {
   content: "";
-  position: absolute;
+  position: fixed;
 
   top: 50%;
   left: 50%;
