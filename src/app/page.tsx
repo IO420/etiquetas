@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ImageCard from '@/components/ImageCard';
 import styles from './page.module.css';
 import ModalDownload from '@/components/ModalDownload';
+import SearchLabels from '@/components/SearchLabels/SearchLabels';
 
 export interface TemplateItem {
   id_templates: number;
@@ -215,6 +216,7 @@ export default function Home() {
   return (
       <section className={styles.main}>
         <h1 className={styles.title}>Plantillas de Etiquetas</h1>
+        <SearchLabels value={""}/>
 
         <div className={styles.masonryContainer}>
           {TEMPLATES.map((item) => (
