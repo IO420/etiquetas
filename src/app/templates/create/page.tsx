@@ -144,6 +144,21 @@ export default function CreateTemplatePage() {
             };
           }
 
+          if (interaction.type === "rotate") {
+            const radians = Math.atan2(
+              e.clientY - interaction.centerY,
+              e.clientX - interaction.centerX,
+            );
+
+            let degrees = Math.round(radians * (180 / Math.PI)) + 90;
+            if (degrees < 0) degrees += 360;
+
+            return {
+              ...img,
+              rotation: degrees,
+            };
+          }
+
           return img;
         }),
       );
@@ -225,7 +240,7 @@ export default function CreateTemplatePage() {
       if (!item) return prev;
 
       const filtered = prev.filter((img) => img.id !== id);
-      return [...filtered, item]; 
+      return [...filtered, item];
     });
   }, []);
 
