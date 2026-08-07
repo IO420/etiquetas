@@ -188,10 +188,7 @@ export default function CreateTemplatePage() {
         height,
       },
       layers: droppedImages.map((img, index) => ({
-        id: img.id,
         name: img.name,
-        url: img.url,
-        zIndex: index,
         position: {
           x: Math.round(img.x),
           y: Math.round(img.y),

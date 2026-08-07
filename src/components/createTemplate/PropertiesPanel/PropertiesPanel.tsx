@@ -27,6 +27,7 @@ export function PropertiesPanel({
         width: "250px",
         padding: "1rem",
         borderLeft: "1px solid #e5e7eb",
+        background:"white"
       }}
     >
       <button
@@ -43,7 +44,7 @@ export function PropertiesPanel({
           marginBottom: "1rem",
         }}
       >
-        Guardar Plantilla (JSON)
+        Guardar Plantilla
       </button>
 
       {selectedItem && (
