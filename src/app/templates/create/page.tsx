@@ -2,25 +2,16 @@
 
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 import styles from "./create.module.css";
 import ResourcesPanel from "@/components/createTemplate/ResourcesPanel/ResourcesPanel";
+import { Canvas } from "@/components/createTemplate/Canvas/Canvas";
+import { PropertiesPanel } from "@/components/createTemplate/PropertiesPanel/PropertiesPanel";
+import { PlacedImage } from "@/components/createTemplate/Canvas/CanvasItem";
 
 const MAX_VISIBLE_SIZE = 700;
 
-interface PlacedImage {
-  id: string;
-  url: string;
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export default function CreateTemplatePage() {
   const searchParams = useSearchParams();
-
   const width = Number(searchParams.get("width")) || 600;
   const height = Number(searchParams.get("height")) || 900;
 
@@ -28,13 +19,16 @@ export default function CreateTemplatePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [interaction, setInteraction] = useState<{
-    type: "move" | "resize" | null;
+    type: "move" | "resize" | "rotate" | null;
     startX: number;
     startY: number;
     initialX: number;
     initialY: number;
     initialW: number;
     initialH: number;
+    initialRotation: number;
+    centerX: number;
+    centerY: number;
   }>({
     type: null,
     startX: 0,
@@ -43,6 +37,9 @@ export default function CreateTemplatePage() {
     initialY: 0,
     initialW: 0,
     initialH: 0,
+    initialRotation: 0,
+    centerX: 0,
+    centerY: 0,
   });
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -50,11 +47,6 @@ export default function CreateTemplatePage() {
   const scale = useMemo(() => {
     return Math.min(MAX_VISIBLE_SIZE / width, MAX_VISIBLE_SIZE / height, 1);
   }, [width, height]);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -65,7 +57,6 @@ export default function CreateTemplatePage() {
 
     const item = JSON.parse(data);
     const rect = canvasRef.current.getBoundingClientRect();
-
     const imgWidth = 150;
     const imgHeight = 150;
 
@@ -80,22 +71,37 @@ export default function CreateTemplatePage() {
       y: Math.max(0, Math.min(y, height - imgHeight)),
       width: imgWidth,
       height: imgHeight,
+      rotation: 0,
     };
 
     setDroppedImages((prev) => [...prev, newImage]);
     setSelectedId(newImage.id);
   };
 
+  const handleDeleteImage = useCallback((idToDelete: string) => {
+    setDroppedImages((prev) => prev.filter((img) => img.id !== idToDelete));
+    setSelectedId(null);
+  }, []);
+
+  const handleSelect = (e: React.MouseEvent, id: string | null) => {
+    if (e) e.stopPropagation();
+    setSelectedId(id);
+  };
+
   const startAction = (
     e: React.MouseEvent,
     id: string,
-    actionType: "move" | "resize",
+    actionType: "move" | "resize" | "rotate",
   ) => {
     e.stopPropagation();
     setSelectedId(id);
 
     const img = droppedImages.find((i) => i.id === id);
-    if (!img) return;
+    if (!img || !canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const centerX = rect.left + (img.x + img.width / 2) * scale;
+    const centerY = rect.top + (img.y + img.height / 2) * scale;
 
     setInteraction({
       type: actionType,
@@ -105,6 +111,9 @@ export default function CreateTemplatePage() {
       initialY: img.y,
       initialW: img.width,
       initialH: img.height,
+      initialRotation: img.rotation || 0,
+      centerX,
+      centerY,
     });
   };
 
@@ -157,6 +166,109 @@ export default function CreateTemplatePage() {
     };
   }, [interaction.type, handleMouseMove, handleMouseUp]);
 
+  const handleSaveTemplate = async () => {
+    const payload = {
+      canvas: {
+        width,
+        height,
+      },
+      layers: droppedImages.map((img, index) => ({
+        id: img.id,
+        name: img.name,
+        url: img.url,
+        zIndex: index,
+        position: {
+          x: Math.round(img.x),
+          y: Math.round(img.y),
+        },
+        size: {
+          width: Math.round(img.width),
+          height: Math.round(img.height),
+        },
+        rotation: img.rotation || 0,
+      })),
+    };
+
+    console.log("JSON generado:", JSON.stringify(payload, null, 2));
+
+    try {
+      const response = await fetch("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert("¡Plantilla guardada correctamente!");
+      }
+    } catch (error) {
+      console.error("Error al guardar la plantilla:", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+        handleDeleteImage(selectedId);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId, handleDeleteImage]);
+
+  const selectedItem = droppedImages.find((img) => img.id === selectedId);
+
+  const handleBringToFront = useCallback((id: string) => {
+    setDroppedImages((prev) => {
+      const item = prev.find((img) => img.id === id);
+      if (!item) return prev;
+
+      const filtered = prev.filter((img) => img.id !== id);
+      return [...filtered, item]; 
+    });
+  }, []);
+
+  const handleSendToBack = useCallback((id: string) => {
+    setDroppedImages((prev) => {
+      const item = prev.find((img) => img.id === id);
+      if (!item) return prev;
+
+      const filtered = prev.filter((img) => img.id !== id);
+      return [item, ...filtered];
+    });
+  }, []);
+
+  const handleStepForward = useCallback((id: string) => {
+    setDroppedImages((prev) => {
+      const currentIndex = prev.findIndex((img) => img.id === id);
+
+      if (currentIndex === -1 || currentIndex === prev.length - 1) return prev;
+
+      const newArr = [...prev];
+      const temp = newArr[currentIndex];
+      newArr[currentIndex] = newArr[currentIndex + 1];
+      newArr[currentIndex + 1] = temp;
+
+      return newArr;
+    });
+  }, []);
+
+  const handleStepBackward = useCallback((id: string) => {
+    setDroppedImages((prev) => {
+      const currentIndex = prev.findIndex((img) => img.id === id);
+
+      if (currentIndex <= 0) return prev;
+
+      const newArr = [...prev];
+      const temp = newArr[currentIndex];
+      newArr[currentIndex] = newArr[currentIndex - 1];
+      newArr[currentIndex - 1] = temp;
+
+      return newArr;
+    });
+  }, []);
+
   return (
     <section className={styles.container}>
       <aside className={styles.sidebar}>
@@ -164,71 +276,28 @@ export default function CreateTemplatePage() {
       </aside>
 
       <section className={styles.workspace}>
-        <div className={styles.background}>
-          <div
-            ref={canvasRef}
-            className={styles.canvas}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={() => setSelectedId(null)}
-            style={{
-              width,
-              height,
-              transform: `scale(${scale})`,
-              position: "relative",
-            }}
-          >
-            {droppedImages.map((img) => {
-              const isSelected = img.id === selectedId;
-
-              return (
-                <div
-                  key={img.id}
-                  onMouseDown={(e) => startAction(e, img.id, "move")}
-                  style={{
-                    position: "absolute",
-                    left: `${img.x}px`,
-                    top: `${img.y}px`,
-                    width: `${img.width}px`,
-                    height: `${img.height}px`,
-                    cursor: "move",
-                    outline: isSelected ? "2px solid #2563eb" : "none",
-                    userSelect: "none",
-                  }}
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.name}
-                    fill
-                    unoptimized
-                    draggable={false}
-                    style={{ objectFit: "contain", pointerEvents: "none" }}
-                  />
-
-                  {isSelected && (
-                    <div
-                      onMouseDown={(e) => startAction(e, img.id, "resize")}
-                      className={styles.selected}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <Canvas
+          canvasRef={canvasRef}
+          width={width}
+          height={height}
+          scale={scale}
+          items={droppedImages}
+          selectedId={selectedId}
+          onDropItem={handleDrop}
+          onSelect={handleSelect}
+          onStartAction={startAction}
+        />
       </section>
 
-      <aside className={styles.properties}>
-        <h2>Propiedades</h2>
-        <div className={styles.propertyArea}>
-          {selectedId ? (
-            <p>Imagen seleccionada (ID: {selectedId})</p>
-          ) : (
-            <p>Selecciona un elemento para editarlo.</p>
-          )}
-        </div>
-      </aside>
+      <PropertiesPanel
+        selectedItem={selectedItem}
+        onSave={handleSaveTemplate}
+        onDelete={handleDeleteImage}
+        onBringToFront={handleBringToFront}
+        onSendToBack={handleSendToBack}
+        onStepForward={handleStepForward}
+        onStepBackward={handleStepBackward}
+      />
     </section>
   );
 }
-//IO
