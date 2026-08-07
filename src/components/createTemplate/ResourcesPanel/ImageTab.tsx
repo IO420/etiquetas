@@ -9,6 +9,7 @@ interface ImageItem {
   id_image: number;
   name: string;
   url: string;
+  url_optimized:string;
 }
 
 interface PaginatedResponse {
@@ -36,7 +37,7 @@ export default function ImagesTab() {
         const { data: response } = await axios.get<PaginatedResponse>(
           "http://localhost:3001/image/latest",
           {
-            params: { page, limit: 10 },
+            params: { page, limit: 50 },
           }
         );
 
@@ -65,8 +66,18 @@ export default function ImagesTab() {
 }
 
 function ImageResourceCard({ item }: { item: ImageItem }) {
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(item));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   return (
-    <div className={styles.card}>
+    <div
+      className={styles.card}
+      draggable
+      onDragStart={handleDragStart}
+      style={{ cursor: "grab" }}
+    >
       <Image
         src={item.url}
         alt={item.name}
@@ -77,3 +88,4 @@ function ImageResourceCard({ item }: { item: ImageItem }) {
     </div>
   );
 }
+//IO
