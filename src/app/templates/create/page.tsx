@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./create.module.css";
+import ResourcesPanel from "@/components/createTemplate/ResourcesPanel/ResourcesPanel";
 
 const MAX_VISIBLE_SIZE = 700;
 
@@ -18,13 +19,8 @@ export default function CreateTemplatePage() {
 
   return (
     <section className={styles.container}>
-
       <aside className={styles.sidebar}>
-        <h2>Recursos</h2>
-
-        <div className={styles.resourceArea}>
-          Aquí aparecerán las imágenes, figuras, textos, etc.
-        </div>
+        <ResourcesPanel />
       </aside>
 
       <section className={styles.workspace}>
