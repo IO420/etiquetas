@@ -112,8 +112,8 @@ export default function BarNavigation() {
                 <Image
                   src={item.icon}
                   alt={item.title}
-                  width={20}
-                  height={20}
+                  width={15}
+                  height={15}
                 />
               )}
               <Link

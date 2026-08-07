@@ -1,23 +1,7 @@
-'use client';
-
-import { useState } from 'react';
-import ImageCard from '@/components/ImageCard';
-import styles from './page.module.css';
-import ModalDownload from '@/components/ModalDownload';
-import SearchLabels from '@/components/SearchLabels/SearchLabels';
-
-export interface TemplateItem {
-  id_templates: number;
-  title: string;
-  layersData: {
-    canvasWidth?: number;
-    canvasHeight?: number;
-    layers: any[];
-  };
-}
+import { TemplateItem } from "./page";
 
 //just to test
-const TEMPLATES:TemplateItem[] = [
+export const TEMPLATES:TemplateItem[] = [
   {
     id_templates: 1,
     title: 'Portada Flores & Stitch',
@@ -210,32 +194,3 @@ const TEMPLATES:TemplateItem[] = [
     },
   },
 ];
-export default function Home() {
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
-
-  return (
-      <section className={styles.main}>
-        <h1 className={styles.title}>Plantillas de Etiquetas</h1>
-        <SearchLabels value={""}/>
-
-        <div className={styles.masonryContainer}>
-          {TEMPLATES.map((item) => (
-            <div key={item.id_templates} className={styles.masonryItem}>
-              <ImageCard
-                item={item}
-                onClick={() => setSelectedTemplate(item)}
-              />
-            </div>
-          ))}
-        </div>
-
-        {selectedTemplate && (
-          <ModalDownload
-            item={selectedTemplate}
-            onClick={() => setSelectedTemplate(null)}
-          />
-        )}
-      </section>
-  );
-}
-//IO

@@ -1,7 +1,6 @@
 import header from "./Header.module.css";
 import { cookies } from "next/headers";
 // import { jwtVerify } from "jose";
-import HeaderNavigation from "./HeaderNavigation";
 import LoginButton from "../Login/LoginButton";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
