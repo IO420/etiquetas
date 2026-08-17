@@ -193,4 +193,15 @@ export const TEMPLATES:TemplateItem[] = [
       ],
     },
   },
+    {
+    id_templates: 11,
+    title: 'stickerPencilMateMcqueen',
+    layersData: {
+      canvasWidth:440,
+      canvasHeight:116,
+      layers: [
+        { type: 'image', image: 'stickerPencilMateMcqueen.jpg', position: { x: 0, y: 0 } },
+      ],
+    },
+  },
 ];

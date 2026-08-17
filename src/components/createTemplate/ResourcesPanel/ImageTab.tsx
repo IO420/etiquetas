@@ -2,14 +2,14 @@
 
 import axios from "axios";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styles from "./resourcesPanel.module.css";
 
 interface ImageItem {
   id_image: number;
   name: string;
   url: string;
-  url_optimized:string;
+  url_optimized: string;
 }
 
 interface PaginatedResponse {
@@ -28,39 +28,135 @@ interface PaginatedResponse {
 export default function ImagesTab() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [uploading, setUploading] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [page] = useState(1);
+
+  const fetchImages = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data: response } = await axios.get<PaginatedResponse>(
+        "http://localhost:3001/image/latest",
+        {
+          params: { page, limit: 50 },
+        },
+      );
+
+      setImages(response.data);
+    } catch (error) {
+      console.error("Error al cargar las imágenes:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
 
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        setLoading(true);
-        const { data: response } = await axios.get<PaginatedResponse>(
-          "http://localhost:3001/image/latest",
-          {
-            params: { page, limit: 50 },
-          }
-        );
-
-        setImages(response.data);
-      } catch (error) {
-        console.error("Error al cargar las imágenes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchImages();
-  }, [page]);
+  }, [fetchImages]);
+
+  const uploadFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Solo se permiten archivos de imagen.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setUploading(true);
+      const { data: newImage } = await axios.post<ImageItem>(
+        "http://localhost:3001/image/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      setImages((prev) => [newImage, ...prev]);
+    } catch (error) {
+      console.error("Error al subir la imagen:", error);
+      alert("Hubo un error al subir la imagen.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadFile(file);
+      e.target.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.dataTransfer.types.includes("Files")) {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      uploadFile(file);
+    }
+  };
 
   if (loading) {
     return <p>Cargando...</p>;
   }
 
   return (
-    <div className={styles.grid}>
-      {images.map((item) => (
-        <ImageResourceCard key={item.id_image} item={item} />
-      ))}
+    <div
+      className={`${styles.uploadContainer} ${
+        isDraggingOver ? styles.dragOver : ""
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDraggingOver && (
+        <div className={styles.dragOverlay}>
+          <span>Suelta tu imagen aquí para subirla</span>
+        </div>
+      )}
+
+      <div className={styles.uploadSection}>
+        <label className={styles.uploadBtn}>
+          {uploading ? "Subiendo..." : "Subir Imagen"}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileInputChange}
+            disabled={uploading}
+            hidden
+          />
+        </label>
+      </div>
+
+      <div className={styles.grid}>
+        {images.map((item) => (
+          <ImageResourceCard key={item.id_image} item={item} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -79,7 +175,7 @@ function ImageResourceCard({ item }: { item: ImageItem }) {
       style={{ cursor: "grab" }}
     >
       <Image
-        src={item.url}
+        src={item.url_optimized || item.url}
         alt={item.name}
         fill
         unoptimized
