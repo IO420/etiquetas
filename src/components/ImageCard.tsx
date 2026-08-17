@@ -1,58 +1,21 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import axios from "axios";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import styles from "./ImageCard.module.css";
+import { TemplatePreviewItem } from "@/app/(front)/page";
 
-export interface ImageCardProps {
-  item: {
-    id_templates: number;
-    title: string;
-    layersData: any;
-  };
+interface ImageCardProps {
+  item: TemplatePreviewItem;
   onClick: () => void;
 }
 
 export default function ImageCard({ item, onClick }: ImageCardProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    setIsImageLoaded(false);
-
-    const fetchPreview = async () => {
-      try {
-        const response = await axios.post<{ url: string }>(
-          "http://localhost:3001/image/label/preview",
-          {
-            ...item.layersData,
-            templateId: item.id_templates,
-          },
-        );
-
-        if (isMounted) {
-          setImageUrl(`${response.data.url}?t=${Date.now()}`);
-        }
-      } catch (error) {
-        console.error("Error al cargar vista previa:", error);
-      }
-    };
-
-    fetchPreview();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [item]);
-
-  // get width y height
   const dimensions = useMemo(() => {
-    if (!imageUrl) return null;
-
-    const match = imageUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+(\?.*)?$/);
+    if (!item.previewUrl) return null;
+    const match = item.previewUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+(\?.*)?$/);
     if (match) {
       return {
         width: parseInt(match[1], 10),
@@ -60,7 +23,7 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
       };
     }
     return null;
-  }, [imageUrl]);
+  }, [item.previewUrl]);
 
   const aspectRatio = dimensions
     ? `${dimensions.width} / ${dimensions.height}`
@@ -74,10 +37,10 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
         }`}
       />
 
-      {imageUrl && (
+      {item.previewUrl && (
         <Image
-          key={imageUrl}
-          src={imageUrl}
+          key={item.previewUrl}
+          src={item.previewUrl}
           alt={item.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
