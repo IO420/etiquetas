@@ -57,8 +57,8 @@ export default function CreateTemplatePage() {
 
     const item = JSON.parse(data);
     const rect = canvasRef.current.getBoundingClientRect();
-    const imgWidth = 150;
-    const imgHeight = 150;
+    const imgWidth = item.width > width? width:item.width;
+    const imgHeight = item.height > height? height:item.height ;
 
     const x = (e.clientX - rect.left) / scale - imgWidth / 2;
     const y = (e.clientY - rect.top) / scale - imgHeight / 2;

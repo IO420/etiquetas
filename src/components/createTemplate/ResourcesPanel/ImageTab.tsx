@@ -76,11 +76,29 @@ export default function ImagesTab() {
       );
 
       setImages((prev) => [newImage, ...prev]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al subir la imagen:", error);
-      alert("Hubo un error al subir la imagen.");
+      const message =
+        error.response?.data?.message || "Hubo un error al subir la imagen.";
+      alert(message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (id_image: number) => {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta imagen?",
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`http://localhost:3001/image/${id_image}`);
+
+      setImages((prev) => prev.filter((img) => img.id_image !== id_image));
+    } catch (error) {
+      console.error("Error al eliminar la imagen:", error);
+      alert("Hubo un error al intentar eliminar la imagen.");
     }
   };
 
@@ -154,14 +172,24 @@ export default function ImagesTab() {
 
       <div className={styles.grid}>
         {images.map((item) => (
-          <ImageResourceCard key={item.id_image} item={item} />
+          <ImageResourceCard
+            key={item.id_image}
+            item={item}
+            onDelete={handleDeleteImage}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ImageResourceCard({ item }: { item: ImageItem }) {
+function ImageResourceCard({
+  item,
+  onDelete,
+}: {
+  item: ImageItem;
+  onDelete: (id: number) => void;
+}) {
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("application/json", JSON.stringify(item));
     e.dataTransfer.effectAllowed = "copy";
@@ -174,6 +202,18 @@ function ImageResourceCard({ item }: { item: ImageItem }) {
       onDragStart={handleDragStart}
       style={{ cursor: "grab" }}
     >
+      <button
+        type="button"
+        className={styles.deleteBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(item.id_image);
+        }}
+        title="Eliminar imagen"
+      >
+        ✕
+      </button>
+
       <Image
         src={item.url_optimized || item.url}
         alt={item.name}
@@ -184,4 +224,3 @@ function ImageResourceCard({ item }: { item: ImageItem }) {
     </div>
   );
 }
-//IO
