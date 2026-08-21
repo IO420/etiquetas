@@ -57,8 +57,6 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
   const handleDownload = async (type: "png" | "pdf") => {
     if (!templateData) return;
 
-    console.log(item.id_template)
-    console.log(templateData)
     setDownloading(type);
     const endpoint = type === "pdf" ? "/image/label/pdf" : "/image/label";
     const extension = type === "pdf" ? "pdf" : "png";
