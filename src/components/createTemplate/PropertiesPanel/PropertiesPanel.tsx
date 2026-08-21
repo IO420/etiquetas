@@ -4,6 +4,10 @@ import { PlacedImage } from "../Canvas/CanvasItem";
 
 interface PropertiesPanelProps {
   selectedItem: PlacedImage | undefined;
+  isPickingColor: boolean;
+  onTogglePicker: () => void;
+  onToleranceChange: (tolerance: number) => void;
+  tolerance: number;
   onSave: () => void;
   onDelete: (id: string) => void;
   onBringToFront: (id: string) => void;
@@ -14,6 +18,10 @@ interface PropertiesPanelProps {
 
 export function PropertiesPanel({
   selectedItem,
+  isPickingColor,
+  onTogglePicker,
+  onToleranceChange,
+  tolerance,
   onSave,
   onDelete,
   onBringToFront,
@@ -27,9 +35,52 @@ export function PropertiesPanel({
         width: "250px",
         padding: "1rem",
         borderLeft: "1px solid #e5e7eb",
-        background:"white"
+        background: "white",
       }}
     >
+      <h2>Herramienta Transparencia</h2>
+      {selectedItem ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.75rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <button
+            onClick={onTogglePicker}
+            style={{
+              padding: "0.5rem",
+              backgroundColor: isPickingColor ? "#10b981" : "#4f46e5",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {isPickingColor
+              ? "Haz clic en la imagen..."
+              : "Gotero: Eliminar Color"}
+          </button>
+
+          <div>
+            <label style={{ fontSize: "12px", display: "block" }}>
+              Tolerancia de Color: {tolerance}
+            </label>
+            <input
+              type="range"
+              min="5"
+              max="100"
+              value={tolerance}
+              onChange={(e) => onToleranceChange(Number(e.target.value))}
+              style={{ width: "100%" }}
+            />
+          </div>
+        </div>
+      ) : (
+        <p>Selecciona una imagen para quitarle el fondo.</p>
+      )}
       <button
         onClick={onSave}
         style={{

@@ -15,7 +15,7 @@
 }
 
 .masonryContainer {
-  columns: 5;
+  columns: 4;
   column-gap: 1.25rem;
 }
 

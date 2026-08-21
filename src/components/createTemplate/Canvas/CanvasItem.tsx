@@ -16,30 +16,44 @@ export interface PlacedImage {
 interface CanvasItemProps {
   item: PlacedImage;
   isSelected: boolean;
+  isPickingColor?: boolean;
   onStartAction: (
     e: React.MouseEvent,
     id: string,
     actionType: "move" | "resize" | "rotate",
   ) => void;
   onSelect: (e: React.MouseEvent, id: string) => void;
+  onPickColor?: (e: React.MouseEvent, item: PlacedImage) => void;
 }
 
 export function CanvasItem({
   item,
   isSelected,
+  isPickingColor,
   onStartAction,
   onSelect,
+  onPickColor,
 }: CanvasItemProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isPickingColor && onPickColor) {
+      onPickColor(e, item);
+    } else {
+      onSelect(e, item.id);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isPickingColor) {
+      onStartAction(e, item.id, "move");
+    }
+  };
+
   return (
     <div
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(e, item.id);
-      }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        onStartAction(e, item.id, "move");
-      }}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
       style={{
         position: "absolute",
         left: `${item.x}px`,
@@ -62,7 +76,7 @@ export function CanvasItem({
         style={{ objectFit: "contain", pointerEvents: "none" }}
       />
 
-      {isSelected && (
+      {isSelected && !isPickingColor && (
         <>
           <div
             onMouseDown={(e) => {

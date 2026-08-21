@@ -2,11 +2,16 @@
 
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import axios from "axios"; // 1. Importar Axios
 import styles from "./create.module.css";
 import ResourcesPanel from "@/components/createTemplate/ResourcesPanel/ResourcesPanel";
 import { Canvas } from "@/components/createTemplate/Canvas/Canvas";
 import { PropertiesPanel } from "@/components/createTemplate/PropertiesPanel/PropertiesPanel";
 import { PlacedImage } from "@/components/createTemplate/Canvas/CanvasItem";
+import {
+  getPixelColorAt,
+  makeColorTransparent,
+} from "@/components/createTemplate/PropertiesPanel/colorStraction";
 
 const MAX_VISIBLE_SIZE = 700;
 
@@ -14,6 +19,9 @@ export default function CreateTemplatePage() {
   const searchParams = useSearchParams();
   const width = Number(searchParams.get("width")) || 600;
   const height = Number(searchParams.get("height")) || 900;
+
+  // Estado para el título de la plantilla
+  const [title, setTitle] = useState("Portada Personalizada");
 
   const [droppedImages, setDroppedImages] = useState<PlacedImage[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -42,6 +50,9 @@ export default function CreateTemplatePage() {
     centerY: 0,
   });
 
+  const [isPickingColor, setIsPickingColor] = useState(false);
+  const [tolerance, setTolerance] = useState(30);
+
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const scale = useMemo(() => {
@@ -57,8 +68,18 @@ export default function CreateTemplatePage() {
 
     const item = JSON.parse(data);
     const rect = canvasRef.current.getBoundingClientRect();
-    const imgWidth = item.width > width? width:item.width;
-    const imgHeight = item.height > height? height:item.height ;
+
+    const maxWidth = width;
+    const maxHeight = height;
+
+    const scaleFactor = Math.min(
+      maxWidth / item.width,
+      maxHeight / item.height,
+      1,
+    );
+
+    const imgWidth = item.width * scaleFactor;
+    const imgHeight = item.height * scaleFactor;
 
     const x = (e.clientX - rect.left) / scale - imgWidth / 2;
     const y = (e.clientY - rect.top) / scale - imgHeight / 2;
@@ -183,11 +204,14 @@ export default function CreateTemplatePage() {
 
   const handleSaveTemplate = async () => {
     const payload = {
+      title,
+      is_public: true,
       canvas: {
         width,
         height,
       },
-      layers: droppedImages.map((img, index) => ({
+      layers: droppedImages.map((img) => ({
+        type: "image",
         name: img.name,
         position: {
           x: Math.round(img.x),
@@ -201,20 +225,20 @@ export default function CreateTemplatePage() {
       })),
     };
 
-    console.log("JSON generado:", JSON.stringify(payload, null, 2));
+    console.log("Payload enviado con Axios:", payload);
 
     try {
-      const response = await fetch("/api/templates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await axios.post(
+        "http://localhost:3001/templates",
+        payload,
+      );
 
-      if (response.ok) {
+      if (response.status === 201 || response.status === 200) {
         alert("¡Plantilla guardada correctamente!");
       }
     } catch (error) {
-      console.error("Error al guardar la plantilla:", error);
+      console.error("Error al guardar la plantilla con Axios:", error);
+      alert("Error al guardar la plantilla. Revisa la consola.");
     }
   };
 
@@ -281,6 +305,42 @@ export default function CreateTemplatePage() {
     });
   }, []);
 
+  const handlePickColor = async (e: React.MouseEvent, item: PlacedImage) => {
+    if (!isPickingColor) return;
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    try {
+      const { r, g, b } = await getPixelColorAt(
+        item.url,
+        clickX,
+        clickY,
+        item.width,
+        item.height,
+      );
+
+      const newBase64Image = await makeColorTransparent(
+        item.url,
+        r,
+        g,
+        b,
+        tolerance,
+      );
+
+      setDroppedImages((prev) =>
+        prev.map((img) =>
+          img.id === item.id ? { ...img, url: newBase64Image } : img,
+        ),
+      );
+    } catch (error) {
+      console.error("Error al procesar el color transparente:", error);
+    } finally {
+      setIsPickingColor(false);
+    }
+  };
+
   return (
     <section className={styles.container}>
       <aside className={styles.sidebar}>
@@ -295,6 +355,8 @@ export default function CreateTemplatePage() {
           scale={scale}
           items={droppedImages}
           selectedId={selectedId}
+          isPickingColor={isPickingColor}
+          onPickColor={handlePickColor}
           onDropItem={handleDrop}
           onSelect={handleSelect}
           onStartAction={startAction}
@@ -303,6 +365,10 @@ export default function CreateTemplatePage() {
 
       <PropertiesPanel
         selectedItem={selectedItem}
+        isPickingColor={isPickingColor}
+        onTogglePicker={() => setIsPickingColor((prev) => !prev)}
+        onToleranceChange={setTolerance}
+        tolerance={tolerance}
         onSave={handleSaveTemplate}
         onDelete={handleDeleteImage}
         onBringToFront={handleBringToFront}

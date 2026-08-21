@@ -10,9 +10,15 @@ interface CanvasProps {
   scale: number;
   items: PlacedImage[];
   selectedId: string | null;
+  isPickingColor?: boolean;
+  onPickColor?: (e: React.MouseEvent, item: PlacedImage) => void;
   onDropItem: (e: React.DragEvent) => void;
   onSelect: (e: React.MouseEvent, id: string | null) => void;
-  onStartAction: (e: React.MouseEvent, id: string, actionType: "move" | "resize" | "rotate") => void;
+  onStartAction: (
+    e: React.MouseEvent,
+    id: string,
+    actionType: "move" | "resize" | "rotate",
+  ) => void;
 }
 
 export function Canvas({
@@ -22,6 +28,8 @@ export function Canvas({
   scale,
   items,
   selectedId,
+  isPickingColor,
+  onPickColor,
   onDropItem,
   onSelect,
   onStartAction,
@@ -32,7 +40,8 @@ export function Canvas({
   };
 
   return (
-    <div className="workspace">
+    <div
+    style={{overflow:"hidden"}}>
       <div
         ref={canvasRef}
         onDragOver={handleDragOver}
@@ -51,6 +60,8 @@ export function Canvas({
             key={img.id}
             item={img}
             isSelected={img.id === selectedId}
+            isPickingColor={isPickingColor}
+            onPickColor={onPickColor}
             onSelect={(e, id) => onSelect(e, id)}
             onStartAction={onStartAction}
           />
