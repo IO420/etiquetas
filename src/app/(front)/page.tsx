@@ -60,7 +60,7 @@ export default function Home() {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:3001/templates/public/previews?page=${page}&limit=10`,
+          `http://localhost:3001/templates/public/previews?page=${page}&limit=20`,
         );
         const result = await response.json();
 

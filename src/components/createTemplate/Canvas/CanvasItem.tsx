@@ -11,6 +11,7 @@ export interface PlacedImage {
   width: number;
   height: number;
   rotation: number;
+  aspectRatio: number;
 }
 
 interface CanvasItemProps {
@@ -20,7 +21,13 @@ interface CanvasItemProps {
   onStartAction: (
     e: React.MouseEvent,
     id: string,
-    actionType: "move" | "resize" | "rotate",
+    actionType:
+      | "move"
+      | "resize"
+      | "rotate"
+      | "resizeL"
+      | "resizeT"
+      | "resizeLT",
   ) => void;
   onSelect: (e: React.MouseEvent, id: string) => void;
   onPickColor?: (e: React.MouseEvent, item: PlacedImage) => void;
@@ -87,6 +94,63 @@ export function CanvasItem({
               position: "absolute",
               bottom: "-6px",
               right: "-6px",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#2563eb",
+              border: "2px solid #ffffff",
+              borderRadius: "50%",
+              cursor: "nwse-resize",
+              zIndex: 10,
+            }}
+          />
+
+          <div
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onStartAction(e, item.id, "resizeL");
+            }}
+            style={{
+              position: "absolute",
+              bottom: "-6px",
+              left: "-6px",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#2563eb",
+              border: "2px solid #ffffff",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
+              zIndex: 10,
+            }}
+          />
+
+          <div
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onStartAction(e, item.id, "resizeT");
+            }}
+            style={{
+              position: "absolute",
+              top: "-6px",
+              right: "-6px",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#2563eb",
+              border: "2px solid #ffffff",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
+              zIndex: 10,
+            }}
+          />
+
+          <div
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onStartAction(e, item.id, "resizeLT");
+            }}
+            style={{
+              position: "absolute",
+              top: "-6px",
+              left: "-6px",
               width: "12px",
               height: "12px",
               backgroundColor: "#2563eb",

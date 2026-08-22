@@ -17,7 +17,13 @@ interface CanvasProps {
   onStartAction: (
     e: React.MouseEvent,
     id: string,
-    actionType: "move" | "resize" | "rotate",
+    actionType:
+      | "move"
+      | "resize"
+      | "rotate"
+      | "resizeL"
+      | "resizeT"
+      | "resizeLT",
   ) => void;
 }
 
@@ -40,8 +46,7 @@ export function Canvas({
   };
 
   return (
-    <div
-    style={{overflow:"hidden"}}>
+    <div style={{ overflow: "hidden" }}>
       <div
         ref={canvasRef}
         onDragOver={handleDragOver}

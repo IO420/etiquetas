@@ -27,7 +27,14 @@ export default function CreateTemplatePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [interaction, setInteraction] = useState<{
-    type: "move" | "resize" | "rotate" | null;
+    type:
+      | "move"
+      | "rotate"
+      | "resize"
+      | "resizeL"
+      | "resizeT"
+      | "resizeLT"
+      | null;
     startX: number;
     startY: number;
     initialX: number;
@@ -93,6 +100,7 @@ export default function CreateTemplatePage() {
       width: imgWidth,
       height: imgHeight,
       rotation: 0,
+      aspectRatio: item.width / item.height, // <-- Guardar proporción original
     };
 
     setDroppedImages((prev) => [...prev, newImage]);
@@ -112,7 +120,13 @@ export default function CreateTemplatePage() {
   const startAction = (
     e: React.MouseEvent,
     id: string,
-    actionType: "move" | "resize" | "rotate",
+    actionType:
+      | "move"
+      | "rotate"
+      | "resize"
+      | "resizeL"
+      | "resizeT"
+      | "resizeLT",
   ) => {
     e.stopPropagation();
     setSelectedId(id);
@@ -156,13 +170,66 @@ export default function CreateTemplatePage() {
               y: interaction.initialY + deltaY,
             };
           }
+          if (
+            interaction.type === "resize" ||
+            interaction.type === "resizeL" ||
+            interaction.type === "resizeT" ||
+            interaction.type === "resizeLT"
+          ) {
+            const ar =
+              img.aspectRatio || interaction.initialW / interaction.initialH;
 
-          if (interaction.type === "resize") {
-            return {
-              ...img,
-              width: Math.max(30, interaction.initialW + deltaX),
-              height: Math.max(30, interaction.initialH + deltaY),
-            };
+            // Determinar el cambio base
+            let newW = interaction.initialW;
+            let newH = interaction.initialH;
+
+            if (interaction.type === "resize") {
+              newW = Math.max(30, interaction.initialW + deltaX);
+              newH = newW / ar;
+              return {
+                ...img,
+                width: newW,
+                height: newH,
+              };
+            }
+
+            if (interaction.type === "resizeL") {
+              newW = Math.max(30, interaction.initialW - deltaX);
+              newH = newW / ar;
+              const actualDeltaX = interaction.initialW - newW;
+              return {
+                ...img,
+                x: interaction.initialX + actualDeltaX,
+                width: newW,
+                height: newH,
+              };
+            }
+
+            if (interaction.type === "resizeT") {
+              newH = Math.max(30, interaction.initialH - deltaY);
+              newW = newH * ar;
+              const actualDeltaY = interaction.initialH - newH;
+              return {
+                ...img,
+                y: interaction.initialY + actualDeltaY,
+                width: newW,
+                height: newH,
+              };
+            }
+
+            if (interaction.type === "resizeLT") {
+              newW = Math.max(30, interaction.initialW - deltaX);
+              newH = newW / ar;
+              const actualDeltaX = interaction.initialW - newW;
+              const actualDeltaY = interaction.initialH - newH;
+              return {
+                ...img,
+                x: interaction.initialX + actualDeltaX,
+                y: interaction.initialY + actualDeltaY,
+                width: newW,
+                height: newH,
+              };
+            }
           }
 
           if (interaction.type === "rotate") {

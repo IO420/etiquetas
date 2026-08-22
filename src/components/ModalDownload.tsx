@@ -5,7 +5,6 @@ import axios from "axios";
 import styles from "./ModalDownload.module.css";
 import ImageCard from "./ImageCard";
 import { TemplatePreviewItem, ResolvedTemplate } from "@/app/(front)/page";
-import { it } from "node:test";
 
 interface ModalDownloadProps {
   item: TemplatePreviewItem;
@@ -13,7 +12,10 @@ interface ModalDownloadProps {
 }
 
 export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
-  const [downloading, setDownloading] = useState<"png" | "pdf" | null>(null);
+  // 1. Ampliamos el estado para incluir la opción "pencils"
+  const [downloading, setDownloading] = useState<
+    "png" | "pdf" | "pencils" | null
+  >(null);
   const [loadingTemplate, setLoadingTemplate] = useState<boolean>(true);
   const [templateData, setTemplateData] = useState<ResolvedTemplate | null>(
     null,
@@ -54,12 +56,26 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
     });
   };
 
-  const handleDownload = async (type: "png" | "pdf") => {
+  // 2. Manejador adaptado para soportar los tres tipos de descarga
+  const handleDownload = async (type: "png" | "pdf" | "pencils") => {
     if (!templateData) return;
 
     setDownloading(type);
-    const endpoint = type === "pdf" ? "/image/label/pdf" : "/image/label";
-    const extension = type === "pdf" ? "pdf" : "png";
+
+    // Mapeo de rutas y extensiones según la opción seleccionada
+    let endpoint = "/image/label";
+    let extension = "png";
+    let mimeType = "image/png";
+
+    if (type === "pdf") {
+      endpoint = "/image/label/pdf";
+      extension = "pdf";
+      mimeType = "application/pdf";
+    } else if (type === "pencils") {
+      endpoint = "/image/print-pencil-labels";
+      extension = "pdf";
+      mimeType = "application/pdf";
+    }
 
     try {
       const response = await axios.post(
@@ -72,14 +88,18 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
         { responseType: "blob" },
       );
 
-      const blob = new Blob([response.data], {
-        type: type === "pdf" ? "application/pdf" : "image/png",
-      });
+      const blob = new Blob([response.data], { type: mimeType });
       const downloadUrl = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute("download", `${item.id_template}.${extension}`);
+
+      const fileNamePrefix = type === "pencils" ? "hoja_lapices" : "etiqueta";
+      link.setAttribute(
+        "download",
+        `${fileNamePrefix}_${item.id_template}.${extension}`,
+      );
+
       document.body.appendChild(link);
       link.click();
 
@@ -87,7 +107,7 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error(`Error descargando ${type.toUpperCase()}:`, error);
-      alert(`Ocurrió un error al generar el archivo ${type.toUpperCase()}`);
+      alert(`Ocurrió un error al generar el archivo.`);
     } finally {
       setDownloading(null);
     }
@@ -134,15 +154,14 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
                   })}
                 </div>
 
+                {/* 3. Grupo de botones con las 3 opciones */}
                 <div className={styles.buttonGroup}>
                   <button
                     onClick={() => handleDownload("png")}
                     disabled={downloading !== null}
                     className={styles.pngBtn}
                   >
-                    {downloading === "png"
-                      ? "Generando PNG..."
-                      : "Descargar PNG"}
+                    {downloading === "png" ? " PNG..." : " PNG"}
                   </button>
 
                   <button
@@ -150,9 +169,17 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
                     disabled={downloading !== null}
                     className={styles.pdfBtn}
                   >
-                    {downloading === "pdf"
-                      ? "Generando PDF..."
-                      : "Descargar PDF"}
+                    {downloading === "pdf" ? " PDF..." : " PDF"}
+                  </button>
+
+                  <button
+                    onClick={() => handleDownload("pencils")}
+                    disabled={downloading !== null}
+                    className={styles.pencilsBtn}
+                  >
+                    {downloading === "pencils"
+                      ? " Hoja Lápices..."
+                      : " Hoja Lápices"}
                   </button>
                 </div>
               </>
@@ -163,3 +190,4 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
     </div>
   );
 }
+//IO
