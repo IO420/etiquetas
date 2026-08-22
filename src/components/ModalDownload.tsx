@@ -11,8 +11,9 @@ interface ModalDownloadProps {
   onClick: () => void;
 }
 
+type PageSizeType = "LETTER" | "LEGAL" | "A4" | "TABLOID";
+
 export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
-  // 1. Ampliamos el estado para incluir la opción "pencils"
   const [downloading, setDownloading] = useState<
     "png" | "pdf" | "pencils" | null
   >(null);
@@ -20,6 +21,8 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
   const [templateData, setTemplateData] = useState<ResolvedTemplate | null>(
     null,
   );
+
+  const [pageSize, setPageSize] = useState<PageSizeType>("LETTER");
 
   useEffect(() => {
     const fetchResolvedTemplate = async () => {
@@ -56,13 +59,11 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
     });
   };
 
-  // 2. Manejador adaptado para soportar los tres tipos de descarga
   const handleDownload = async (type: "png" | "pdf" | "pencils") => {
     if (!templateData) return;
 
     setDownloading(type);
 
-    // Mapeo de rutas y extensiones según la opción seleccionada
     let endpoint = "/image/label";
     let extension = "png";
     let mimeType = "image/png";
@@ -77,14 +78,20 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
       mimeType = "application/pdf";
     }
 
+    const payload: Record<string, any> = {
+      canvasWidth: templateData.canvasWidth,
+      canvasHeight: templateData.canvasHeight,
+      layers: templateData.layers,
+    };
+
+    if (type === "pencils") {
+      payload.pageSize = pageSize;
+    }
+
     try {
       const response = await axios.post(
         `http://localhost:3001${endpoint}`,
-        {
-          canvasWidth: templateData.canvasWidth,
-          canvasHeight: templateData.canvasHeight,
-          layers: templateData.layers,
-        },
+        payload,
         { responseType: "blob" },
       );
 
@@ -152,9 +159,25 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
                       </div>
                     );
                   })}
+
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="pageSizeSelect">Tamaño de hoja:</label>
+                    <select
+                      id="pageSizeSelect"
+                      value={pageSize}
+                      onChange={(e) =>
+                        setPageSize(e.target.value as PageSizeType)
+                      }
+                      className={styles.selectInput}
+                    >
+                      <option value="LETTER">Carta (Letter)</option>
+                      <option value="LEGAL">Oficio (Legal)</option>
+                      <option value="A4">A4</option>
+                      <option value="TABLOID">Doble Carta (Tabloid)</option>
+                    </select>
+                  </div>
                 </div>
 
-                {/* 3. Grupo de botones con las 3 opciones */}
                 <div className={styles.buttonGroup}>
                   <button
                     onClick={() => handleDownload("png")}
