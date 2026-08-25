@@ -1,9 +1,9 @@
-// Convierte valores RGB a Hexadecimal
+// RGB to Hexadecimal
 export function rgbToHex(r: number, g: number, b: number): string {
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
-// Devuelve el color exacto del píxel según las coordenadas de clic
+// get the pixel color
 export async function getPixelColorAt(
   imageUrl: string,
   targetX: number,
@@ -26,7 +26,6 @@ export async function getPixelColorAt(
 
       ctx.drawImage(img, 0, 0);
 
-      // Mapear las coordenadas de la pantalla a la escala natural del archivo
       const scaleX = img.naturalWidth / imageWidth;
       const scaleY = img.naturalHeight / imageHeight;
       const pixelX = Math.floor(targetX * scaleX);
@@ -42,7 +41,6 @@ export async function getPixelColorAt(
   });
 }
 
-// Remueve el color seleccionado y devuelve una imagen Base64 PNG transparente
 export async function makeColorTransparent(
   imageUrl: string,
   targetR: number,
@@ -68,19 +66,17 @@ export async function makeColorTransparent(
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
-      // Evaluar cada píxel (RGBA)
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
 
-        // Calcular la distancia cromática (tolerancia)
         if (
           Math.abs(r - targetR) <= tolerance &&
           Math.abs(g - targetG) <= tolerance &&
           Math.abs(b - targetB) <= tolerance
         ) {
-          data[i + 3] = 0; // Vuelve el píxel transparente
+          data[i + 3] = 0;
         }
       }
 

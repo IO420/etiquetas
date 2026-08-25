@@ -2,12 +2,12 @@
 
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import axios from "axios"; // 1. Importar Axios
+import axios from "axios";
 import styles from "./create.module.css";
 import ResourcesPanel from "@/components/createTemplate/ResourcesPanel/ResourcesPanel";
 import { Canvas } from "@/components/createTemplate/Canvas/Canvas";
 import { PropertiesPanel } from "@/components/createTemplate/PropertiesPanel/PropertiesPanel";
-import { PlacedImage } from "@/components/createTemplate/Canvas/CanvasItem";
+import { PlacedLayer, TextLayer, ImageLayer } from "@/types/canvas";
 import {
   getPixelColorAt,
   makeColorTransparent,
@@ -20,10 +20,9 @@ export default function CreateTemplatePage() {
   const width = Number(searchParams.get("width")) || 600;
   const height = Number(searchParams.get("height")) || 900;
 
-  // Estado para el título de la plantilla
   const [title, setTitle] = useState("Portada Personalizada");
 
-  const [droppedImages, setDroppedImages] = useState<PlacedImage[]>([]);
+  const [layers, setLayers] = useState<PlacedLayer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [interaction, setInteraction] = useState<{
@@ -76,39 +75,57 @@ export default function CreateTemplatePage() {
     const item = JSON.parse(data);
     const rect = canvasRef.current.getBoundingClientRect();
 
-    const maxWidth = width;
-    const maxHeight = height;
+    if (item.type === "text") {
+      const x = (e.clientX - rect.left) / scale - item.width / 2;
+      const y = (e.clientY - rect.top) / scale - item.height / 2;
 
-    const scaleFactor = Math.min(
-      maxWidth / item.width,
-      maxHeight / item.height,
-      1,
-    );
+      const newTextLayer: TextLayer = {
+        id: `text-${Date.now()}`,
+        type: "text",
+        text: item.text,
+        label: item.label,
+        fontFamily: item.fontFamily,
+        fontUrl: item.fontUrl,
+        fontSize: item.fontSize,
+        color: item.color,
+        x: Math.max(0, Math.min(x, width - item.width)),
+        y: Math.max(0, Math.min(y, height - item.height)),
+        width: item.width,
+        height: item.height,
+        rotation: 0,
+      };
 
-    const imgWidth = item.width * scaleFactor;
-    const imgHeight = item.height * scaleFactor;
+      setLayers((prev) => [...prev, newTextLayer]);
+      setSelectedId(newTextLayer.id);
+    } else {
+      const scaleFactor = Math.min(width / item.width, height / item.height, 1);
 
-    const x = (e.clientX - rect.left) / scale - imgWidth / 2;
-    const y = (e.clientY - rect.top) / scale - imgHeight / 2;
+      const imgWidth = item.width * scaleFactor;
+      const imgHeight = item.height * scaleFactor;
 
-    const newImage: PlacedImage = {
-      id: `${item.id_image}-${Date.now()}`,
-      url: item.url,
-      name: item.name,
-      x: Math.max(0, Math.min(x, width - imgWidth)),
-      y: Math.max(0, Math.min(y, height - imgHeight)),
-      width: imgWidth,
-      height: imgHeight,
-      rotation: 0,
-      aspectRatio: item.width / item.height, // <-- Guardar proporción original
-    };
+      const x = (e.clientX - rect.left) / scale - imgWidth / 2;
+      const y = (e.clientY - rect.top) / scale - imgHeight / 2;
 
-    setDroppedImages((prev) => [...prev, newImage]);
-    setSelectedId(newImage.id);
+      const newImageLayer: ImageLayer = {
+        id: `${item.id_image}-${Date.now()}`,
+        type: "image",
+        url: item.url,
+        name: item.name,
+        x: Math.max(0, Math.min(x, width - imgWidth)),
+        y: Math.max(0, Math.min(y, height - imgHeight)),
+        width: imgWidth,
+        height: imgHeight,
+        rotation: 0,
+        aspectRatio: item.width / item.height,
+      };
+
+      setLayers((prev) => [...prev, newImageLayer]);
+      setSelectedId(newImageLayer.id);
+    }
   };
 
-  const handleDeleteImage = useCallback((idToDelete: string) => {
-    setDroppedImages((prev) => prev.filter((img) => img.id !== idToDelete));
+  const handleDeleteLayer = useCallback((idToDelete: string) => {
+    setLayers((prev) => prev.filter((item) => item.id !== idToDelete));
     setSelectedId(null);
   }, []);
 
@@ -131,22 +148,22 @@ export default function CreateTemplatePage() {
     e.stopPropagation();
     setSelectedId(id);
 
-    const img = droppedImages.find((i) => i.id === id);
-    if (!img || !canvasRef.current) return;
+    const layer = layers.find((i) => i.id === id);
+    if (!layer || !canvasRef.current) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const centerX = rect.left + (img.x + img.width / 2) * scale;
-    const centerY = rect.top + (img.y + img.height / 2) * scale;
+    const centerX = rect.left + (layer.x + layer.width / 2) * scale;
+    const centerY = rect.top + (layer.y + layer.height / 2) * scale;
 
     setInteraction({
       type: actionType,
       startX: e.clientX,
       startY: e.clientY,
-      initialX: img.x,
-      initialY: img.y,
-      initialW: img.width,
-      initialH: img.height,
-      initialRotation: img.rotation || 0,
+      initialX: layer.x,
+      initialY: layer.y,
+      initialW: layer.width,
+      initialH: layer.height,
+      initialRotation: layer.rotation || 0,
       centerX,
       centerY,
     });
@@ -159,17 +176,18 @@ export default function CreateTemplatePage() {
       const deltaX = (e.clientX - interaction.startX) / scale;
       const deltaY = (e.clientY - interaction.startY) / scale;
 
-      setDroppedImages((prev) =>
-        prev.map((img) => {
-          if (img.id !== selectedId) return img;
+      setLayers((prev) =>
+        prev.map((item) => {
+          if (item.id !== selectedId) return item;
 
           if (interaction.type === "move") {
             return {
-              ...img,
+              ...item,
               x: interaction.initialX + deltaX,
               y: interaction.initialY + deltaY,
             };
           }
+
           if (
             interaction.type === "resize" ||
             interaction.type === "resizeL" ||
@@ -177,20 +195,16 @@ export default function CreateTemplatePage() {
             interaction.type === "resizeLT"
           ) {
             const ar =
-              img.aspectRatio || interaction.initialW / interaction.initialH;
+              (item.type === "image" ? item.aspectRatio : null) ||
+              interaction.initialW / interaction.initialH;
 
-            // Determinar el cambio base
             let newW = interaction.initialW;
             let newH = interaction.initialH;
 
             if (interaction.type === "resize") {
               newW = Math.max(30, interaction.initialW + deltaX);
               newH = newW / ar;
-              return {
-                ...img,
-                width: newW,
-                height: newH,
-              };
+              return { ...item, width: newW, height: newH };
             }
 
             if (interaction.type === "resizeL") {
@@ -198,7 +212,7 @@ export default function CreateTemplatePage() {
               newH = newW / ar;
               const actualDeltaX = interaction.initialW - newW;
               return {
-                ...img,
+                ...item,
                 x: interaction.initialX + actualDeltaX,
                 width: newW,
                 height: newH,
@@ -210,7 +224,7 @@ export default function CreateTemplatePage() {
               newW = newH * ar;
               const actualDeltaY = interaction.initialH - newH;
               return {
-                ...img,
+                ...item,
                 y: interaction.initialY + actualDeltaY,
                 width: newW,
                 height: newH,
@@ -223,7 +237,7 @@ export default function CreateTemplatePage() {
               const actualDeltaX = interaction.initialW - newW;
               const actualDeltaY = interaction.initialH - newH;
               return {
-                ...img,
+                ...item,
                 x: interaction.initialX + actualDeltaX,
                 y: interaction.initialY + actualDeltaY,
                 width: newW,
@@ -241,13 +255,10 @@ export default function CreateTemplatePage() {
             let degrees = Math.round(radians * (180 / Math.PI)) + 90;
             if (degrees < 0) degrees += 360;
 
-            return {
-              ...img,
-              rotation: degrees,
-            };
+            return { ...item, rotation: degrees };
           }
 
-          return img;
+          return item;
         }),
       );
     },
@@ -277,19 +288,42 @@ export default function CreateTemplatePage() {
         width,
         height,
       },
-      layers: droppedImages.map((img) => ({
-        type: "image",
-        name: img.name,
-        position: {
-          x: Math.round(img.x),
-          y: Math.round(img.y),
-        },
-        size: {
-          width: Math.round(img.width),
-          height: Math.round(img.height),
-        },
-        rotation: img.rotation || 0,
-      })),
+      layers: layers.map((layer) => {
+        if (layer.type === "text") {
+          return {
+            type: "text",
+            text: layer.text,
+            label: layer.label,
+            fontFamily: layer.fontFamily,
+            fontSize: layer.fontSize,
+            color: layer.color,
+            position: {
+              x: Math.round(layer.x),
+              y: Math.round(layer.y),
+            },
+            size: {
+              width: Math.round(layer.width),
+              height: Math.round(layer.height),
+            },
+            rotation: layer.rotation || 0,
+          };
+        }
+
+        return {
+          type: "image",
+          name: layer.name,
+          url: layer.url,
+          position: {
+            x: Math.round(layer.x),
+            y: Math.round(layer.y),
+          },
+          size: {
+            width: Math.round(layer.width),
+            height: Math.round(layer.height),
+          },
+          rotation: layer.rotation || 0,
+        };
+      }),
     };
 
     console.log("Payload enviado con Axios:", payload);
@@ -304,7 +338,7 @@ export default function CreateTemplatePage() {
         alert("¡Plantilla guardada correctamente!");
       }
     } catch (error) {
-      console.error("Error al guardar la plantilla con Axios:", error);
+      console.error("Error al guardar la plantilla:", error);
       alert("Error al guardar la plantilla. Revisa la consola.");
     }
   };
@@ -312,68 +346,58 @@ export default function CreateTemplatePage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
-        handleDeleteImage(selectedId);
+        handleDeleteLayer(selectedId);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedId, handleDeleteImage]);
+  }, [selectedId, handleDeleteLayer]);
 
-  const selectedItem = droppedImages.find((img) => img.id === selectedId);
+  const selectedItem = layers.find((l) => l.id === selectedId);
 
   const handleBringToFront = useCallback((id: string) => {
-    setDroppedImages((prev) => {
-      const item = prev.find((img) => img.id === id);
+    setLayers((prev) => {
+      const item = prev.find((l) => l.id === id);
       if (!item) return prev;
-
-      const filtered = prev.filter((img) => img.id !== id);
-      return [...filtered, item];
+      return [...prev.filter((l) => l.id !== id), item];
     });
   }, []);
 
   const handleSendToBack = useCallback((id: string) => {
-    setDroppedImages((prev) => {
-      const item = prev.find((img) => img.id === id);
+    setLayers((prev) => {
+      const item = prev.find((l) => l.id === id);
       if (!item) return prev;
-
-      const filtered = prev.filter((img) => img.id !== id);
-      return [item, ...filtered];
+      return [item, ...prev.filter((l) => l.id !== id)];
     });
   }, []);
 
   const handleStepForward = useCallback((id: string) => {
-    setDroppedImages((prev) => {
-      const currentIndex = prev.findIndex((img) => img.id === id);
-
-      if (currentIndex === -1 || currentIndex === prev.length - 1) return prev;
-
+    setLayers((prev) => {
+      const idx = prev.findIndex((l) => l.id === id);
+      if (idx === -1 || idx === prev.length - 1) return prev;
       const newArr = [...prev];
-      const temp = newArr[currentIndex];
-      newArr[currentIndex] = newArr[currentIndex + 1];
-      newArr[currentIndex + 1] = temp;
-
+      const temp = newArr[idx];
+      newArr[idx] = newArr[idx + 1];
+      newArr[idx + 1] = temp;
       return newArr;
     });
   }, []);
 
   const handleStepBackward = useCallback((id: string) => {
-    setDroppedImages((prev) => {
-      const currentIndex = prev.findIndex((img) => img.id === id);
-
-      if (currentIndex <= 0) return prev;
-
+    setLayers((prev) => {
+      const idx = prev.findIndex((l) => l.id === id);
+      if (idx <= 0) return prev;
       const newArr = [...prev];
-      const temp = newArr[currentIndex];
-      newArr[currentIndex] = newArr[currentIndex - 1];
-      newArr[currentIndex - 1] = temp;
-
+      const temp = newArr[idx];
+      newArr[idx] = newArr[idx - 1];
+      newArr[idx - 1] = temp;
       return newArr;
     });
   }, []);
 
-  const handlePickColor = async (e: React.MouseEvent, item: PlacedImage) => {
-    if (!isPickingColor) return;
+  const handlePickColor = async (e: React.MouseEvent, item: ImageLayer) => {
+    if (!isPickingColor || item.type !== "image") return;
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -396,9 +420,11 @@ export default function CreateTemplatePage() {
         tolerance,
       );
 
-      setDroppedImages((prev) =>
+      setLayers((prev) =>
         prev.map((img) =>
-          img.id === item.id ? { ...img, url: newBase64Image } : img,
+          img.id === item.id
+            ? ({ ...img, url: newBase64Image } as ImageLayer)
+            : img,
         ),
       );
     } catch (error) {
@@ -407,6 +433,16 @@ export default function CreateTemplatePage() {
       setIsPickingColor(false);
     }
   };
+
+  const handleUpdateText = useCallback((id: string, newText: string) => {
+    setLayers((prevLayers) =>
+      prevLayers.map((layer) =>
+        layer.id === id && layer.type === "text"
+          ? { ...layer, text: newText }
+          : layer,
+      ),
+    );
+  }, []);
 
   return (
     <section className={styles.container}>
@@ -420,13 +456,14 @@ export default function CreateTemplatePage() {
           width={width}
           height={height}
           scale={scale}
-          items={droppedImages}
+          items={layers}
           selectedId={selectedId}
           isPickingColor={isPickingColor}
           onPickColor={handlePickColor}
           onDropItem={handleDrop}
           onSelect={handleSelect}
           onStartAction={startAction}
+          onUpdateText={handleUpdateText}
         />
       </section>
 
@@ -437,7 +474,7 @@ export default function CreateTemplatePage() {
         onToleranceChange={setTolerance}
         tolerance={tolerance}
         onSave={handleSaveTemplate}
-        onDelete={handleDeleteImage}
+        onDelete={handleDeleteLayer}
         onBringToFront={handleBringToFront}
         onSendToBack={handleSendToBack}
         onStepForward={handleStepForward}

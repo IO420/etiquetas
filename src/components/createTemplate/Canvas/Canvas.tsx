@@ -1,17 +1,18 @@
 "use client";
 
 import { RefObject } from "react";
-import { CanvasItem, PlacedImage } from "./CanvasItem";
+import { CanvasItem } from "./CanvasItem";
+import { PlacedLayer, ImageLayer } from "@/types/canvas";
 
 interface CanvasProps {
   canvasRef: RefObject<HTMLDivElement | null>;
   width: number;
   height: number;
   scale: number;
-  items: PlacedImage[];
+  items: PlacedLayer[];
   selectedId: string | null;
   isPickingColor?: boolean;
-  onPickColor?: (e: React.MouseEvent, item: PlacedImage) => void;
+  onPickColor?: (e: React.MouseEvent, item: ImageLayer) => void;
   onDropItem: (e: React.DragEvent) => void;
   onSelect: (e: React.MouseEvent, id: string | null) => void;
   onStartAction: (
@@ -25,6 +26,7 @@ interface CanvasProps {
       | "resizeT"
       | "resizeLT",
   ) => void;
+  onUpdateText?: (id: string, newText: string) => void; 
 }
 
 export function Canvas({
@@ -39,6 +41,7 @@ export function Canvas({
   onDropItem,
   onSelect,
   onStartAction,
+  onUpdateText,
 }: CanvasProps) {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -60,15 +63,16 @@ export function Canvas({
           backgroundColor: "#ffffff",
         }}
       >
-        {items.map((img) => (
+        {items.map((item) => (
           <CanvasItem
-            key={img.id}
-            item={img}
-            isSelected={img.id === selectedId}
+            key={item.id}
+            item={item}
+            isSelected={item.id === selectedId}
             isPickingColor={isPickingColor}
             onPickColor={onPickColor}
             onSelect={(e, id) => onSelect(e, id)}
             onStartAction={onStartAction}
+            onUpdateText={onUpdateText}
           />
         ))}
       </div>

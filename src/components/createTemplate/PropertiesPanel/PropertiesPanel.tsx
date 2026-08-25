@@ -1,9 +1,9 @@
 "use client";
 
-import { PlacedImage } from "../Canvas/CanvasItem";
+import { PlacedLayer } from "@/types/canvas";
 
 interface PropertiesPanelProps {
-  selectedItem: PlacedImage | undefined;
+  selectedItem: PlacedLayer | undefined;
   isPickingColor: boolean;
   onTogglePicker: () => void;
   onToleranceChange: (tolerance: number) => void;
@@ -29,6 +29,8 @@ export function PropertiesPanel({
   onStepForward,
   onStepBackward,
 }: PropertiesPanelProps) {
+  const isImage = selectedItem?.type === "image";
+
   return (
     <aside
       style={{
@@ -39,7 +41,7 @@ export function PropertiesPanel({
       }}
     >
       <h2>Herramienta Transparencia</h2>
-      {selectedItem ? (
+      {selectedItem && isImage ? (
         <div
           style={{
             display: "flex",
@@ -79,8 +81,13 @@ export function PropertiesPanel({
           </div>
         </div>
       ) : (
-        <p>Selecciona una imagen para quitarle el fondo.</p>
+        <p style={{ fontSize: "13px", color: "#6b7280" }}>
+          {selectedItem
+            ? "Las herramientas de transparencia solo aplican a imágenes."
+            : "Selecciona una imagen para quitarle el fondo."}
+        </p>
       )}
+
       <button
         onClick={onSave}
         style={{
@@ -105,13 +112,30 @@ export function PropertiesPanel({
           </p>
         </div>
       )}
+
       <h2>Propiedades</h2>
       <div>
         {selectedItem ? (
           <div>
             <p>
-              <strong>Imagen:</strong> {selectedItem.name}
+              <strong>Tipo:</strong>{" "}
+              {selectedItem.type === "image" ? "Imagen" : "Texto"}
             </p>
+            {selectedItem.type === "image" && (
+              <p>
+                <strong>Nombre:</strong> {selectedItem.name}
+              </p>
+            )}
+            {selectedItem.type === "text" && (
+              <>
+                <p>
+                  <strong>Fuente:</strong> {selectedItem.fontFamily}
+                </p>
+                <p>
+                  <strong>Texto:</strong> {selectedItem.text}
+                </p>
+              </>
+            )}
             <p>
               <strong>Ancho:</strong> {Math.round(selectedItem.width)}px
             </p>
@@ -205,7 +229,7 @@ export function PropertiesPanel({
                   cursor: "pointer",
                 }}
               >
-                Eliminar Imagen
+                Eliminar {selectedItem.type === "image" ? "Imagen" : "Texto"}
               </button>
             </div>
           </div>

@@ -1,21 +1,11 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-
-export interface PlacedImage {
-  id: string;
-  url: string;
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  aspectRatio: number;
-}
+import { PlacedLayer, ImageLayer } from "@/types/canvas";
 
 interface CanvasItemProps {
-  item: PlacedImage;
+  item: PlacedLayer;
   isSelected: boolean;
   isPickingColor?: boolean;
   onStartAction: (
@@ -30,7 +20,8 @@ interface CanvasItemProps {
       | "resizeLT",
   ) => void;
   onSelect: (e: React.MouseEvent, id: string) => void;
-  onPickColor?: (e: React.MouseEvent, item: PlacedImage) => void;
+  onPickColor?: (e: React.MouseEvent, item: ImageLayer) => void;
+  onUpdateText?: (id: string, newText: string) => void;
 }
 
 export function CanvasItem({
@@ -40,10 +31,30 @@ export function CanvasItem({
   onStartAction,
   onSelect,
   onPickColor,
+  onUpdateText,
 }: CanvasItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [textValue, setTextValue] = useState(
+    item.type === "text" ? item.text : "",
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (item.type === "text") {
+      setTextValue(item.text);
+    }
+  }, [item]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isPickingColor && onPickColor) {
+    if (isPickingColor && onPickColor && item.type === "image") {
       onPickColor(e, item);
     } else {
       onSelect(e, item.id);
@@ -51,9 +62,30 @@ export function CanvasItem({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isEditing) return;
     e.stopPropagation();
     if (!isPickingColor) {
       onStartAction(e, item.id, "move");
+    }
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.type === "text") {
+      setIsEditing(true);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (onUpdateText && item.type === "text") {
+      onUpdateText(item.id, textValue);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleBlur();
     }
   };
 
@@ -61,6 +93,7 @@ export function CanvasItem({
     <div
       onClick={handleClick}
       onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
       style={{
         position: "absolute",
         left: `${item.x}px`,
@@ -69,22 +102,72 @@ export function CanvasItem({
         height: `${item.height}px`,
         transform: `rotate(${item.rotation || 0}deg)`,
         transformOrigin: "center center",
-        cursor: "move",
+        cursor: isEditing
+          ? "text"
+          : isPickingColor && item.type === "image"
+            ? "crosshair"
+            : "move",
         outline: isSelected ? "2px solid #2563eb" : "none",
-        userSelect: "none",
+        userSelect: isEditing ? "text" : "none",
       }}
     >
-      <Image
-        src={item.url}
-        alt={item.name}
-        fill
-        unoptimized
-        draggable={false}
-        style={{ objectFit: "contain", pointerEvents: "none" }}
-      />
+      {/* RENDERIZADO CONDICIONAL: IMAGEN VS TEXTO */}
+      {item.type === "image" ? (
+        <Image
+          src={item.url}
+          alt={item.name}
+          fill
+          unoptimized
+          draggable={false}
+          style={{ objectFit: "contain", pointerEvents: "none" }}
+        />
+      ) : isEditing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          value={textValue}
+          onChange={(e) => setTextValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            width: "100%",
+            height: "100%",
+            fontFamily: item.fontFamily,
+            fontSize: `${item.fontSize}px`,
+            color: item.color,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            textAlign: "center",
+            padding: 0,
+            margin: 0,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            fontFamily: item.fontFamily,
+            fontSize: `${item.fontSize}px`,
+            color: item.color,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+          }}
+        >
+          {item.text}
+        </div>
+      )}
 
-      {isSelected && !isPickingColor && (
+      {/* CONTROLES Y MANIJAS DE SELECCIÓN (Resize & Rotate) */}
+      {isSelected && !isPickingColor && !isEditing && (
         <>
+          {/* Esquina Inferior Derecha */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -104,6 +187,7 @@ export function CanvasItem({
             }}
           />
 
+          {/* Esquina Inferior Izquierda */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -123,6 +207,7 @@ export function CanvasItem({
             }}
           />
 
+          {/* Esquina Superior Derecha */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -142,6 +227,7 @@ export function CanvasItem({
             }}
           />
 
+          {/* Esquina Superior Izquierda */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -161,6 +247,7 @@ export function CanvasItem({
             }}
           />
 
+          {/* Control de Rotación */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
