@@ -7,9 +7,9 @@ import styles from "./ButtonTemplate.module.css";
 const TEMPLATE_SIZES = [
   {
     id: "small",
-    name: "Etiqueta pequeña",
-    width: 400,
-    height: 200,
+    name: "Etiqueta de lapiz",
+    width: 650,
+    height: 100,
   },
   {
     id: "medium",
@@ -106,3 +106,4 @@ export default function ButtonTemplate() {
     </>
   );
 }
+//IO

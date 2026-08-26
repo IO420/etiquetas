@@ -76,6 +76,18 @@ export default function Home() {
     fetchTemplates();
   }, [page]);
 
+  const handleDeleteTemplate = (idToDelete: number) => {
+    setTemplates((prevTemplates) =>
+      prevTemplates.filter((item) => item.id_template !== idToDelete),
+    );
+
+    if (meta) {
+      setMeta((prevMeta) =>
+        prevMeta ? { ...prevMeta, total: prevMeta.total - 1 } : null,
+      );
+    }
+  };
+
   return (
     <section className={styles.main}>
       <div className={styles.searchContainer}>
@@ -128,8 +140,12 @@ export default function Home() {
         <ModalDownload
           item={selectedTemplate}
           onClick={() => setSelectedTemplate(null)}
+          onDeleteSuccess={() =>
+            handleDeleteTemplate(selectedTemplate.id_template)
+          }
         />
       )}
     </section>
   );
 }
+//IO

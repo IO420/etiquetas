@@ -9,14 +9,21 @@ import { TemplatePreviewItem, ResolvedTemplate } from "@/app/(front)/page";
 interface ModalDownloadProps {
   item: TemplatePreviewItem;
   onClick: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 type PageSizeType = "LETTER" | "LEGAL" | "A4" | "TABLOID";
 
-export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
+export default function ModalDownload({
+  item,
+  onClick,
+  onDeleteSuccess,
+}: ModalDownloadProps) {
   const [downloading, setDownloading] = useState<
     "png" | "pdf" | "pencils" | null
   >(null);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
   const [loadingTemplate, setLoadingTemplate] = useState<boolean>(true);
   const [templateData, setTemplateData] = useState<ResolvedTemplate | null>(
     null,
@@ -57,6 +64,23 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
         layers: updatedLayers,
       };
     });
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      await axios.delete(`http://localhost:3001/templates/${item.id_template}`);
+
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
+      onClick();
+    } catch (error) {
+      console.error("Error al eliminar la plantilla:", error);
+      alert("Ocurrió un error al intentar eliminar la plantilla.");
+      setDeleting(false);
+      setShowConfirmDelete(false);
+    }
   };
 
   const handleDownload = async (type: "png" | "pdf" | "pencils") => {
@@ -123,20 +147,56 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
   return (
     <div className={styles.backdrop} onClick={onClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClick}>
+        <button
+          className={styles.closeBtn}
+          onClick={onClick}
+          aria-label="Cerrar"
+        >
           ✕
         </button>
-        <h2>{item.title}</h2>
+
+        <div className={styles.header}>
+          <h2>{item.title}</h2>
+          <button
+            onClick={() => setShowConfirmDelete(true)}
+            className={styles.deleteIconButton}
+            title="Eliminar plantilla"
+            disabled={downloading !== null || deleting}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
 
         <section className={styles.flexSection}>
-          <ImageCard item={item} onClick={() => null} />
+          <div className={styles.imageWrapper}>
+            <ImageCard item={item} onClick={() => null} />
+          </div>
 
           <div className={styles.containerInputs}>
             {loadingTemplate ? (
-              <p>Cargando campos editables...</p>
+              <div className={styles.loaderContainer}>
+                <div className={styles.spinner}></div>
+                <p>Cargando campos editables...</p>
+              </div>
             ) : (
               <>
-                <p>Personaliza los campos de tu etiqueta:</p>
+                <p className={styles.sectionSubtitle}>
+                  Personaliza los campos de tu etiqueta:
+                </p>
 
                 <div className={styles.inputsForm}>
                   {templateData?.layers.map((layer: any, index: number) => {
@@ -146,7 +206,7 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
 
                     return (
                       <div key={index} className={styles.inputGroup}>
-                        <label htmlFor={`field-${index}`}>{labelName}:</label>
+                        <label htmlFor={`field-${index}`}>{labelName}</label>
                         <input
                           id={`field-${index}`}
                           type="text"
@@ -154,14 +214,16 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
                           onChange={(e) =>
                             handleInputChange(index, e.target.value)
                           }
-                          placeholder={`Escribe ${labelName.toLowerCase()}`}
+                          placeholder={`Ej. ${labelName}`}
                         />
                       </div>
                     );
                   })}
 
                   <div className={styles.inputGroup}>
-                    <label htmlFor="pageSizeSelect">Tamaño de hoja:</label>
+                    <label htmlFor="pageSizeSelect">
+                      Tamaño de hoja para impresión
+                    </label>
                     <select
                       id="pageSizeSelect"
                       value={pageSize}
@@ -178,37 +240,74 @@ export default function ModalDownload({ item, onClick }: ModalDownloadProps) {
                   </div>
                 </div>
 
-                <div className={styles.buttonGroup}>
-                  <button
-                    onClick={() => handleDownload("png")}
-                    disabled={downloading !== null}
-                    className={styles.pngBtn}
-                  >
-                    {downloading === "png" ? " PNG..." : " PNG"}
-                  </button>
+                <div className={styles.downloadSection}>
+                  <p className={styles.downloadLabel}>Formatos de descarga:</p>
+                  <div className={styles.buttonGroup}>
+                    <button
+                      onClick={() => handleDownload("png")}
+                      disabled={downloading !== null || deleting}
+                      className={styles.pngBtn}
+                    >
+                      {downloading === "png"
+                        ? "Generando PNG..."
+                        : "Descargar PNG"}
+                    </button>
 
-                  <button
-                    onClick={() => handleDownload("pdf")}
-                    disabled={downloading !== null}
-                    className={styles.pdfBtn}
-                  >
-                    {downloading === "pdf" ? " PDF..." : " PDF"}
-                  </button>
+                    <button
+                      onClick={() => handleDownload("pdf")}
+                      disabled={downloading !== null || deleting}
+                      className={styles.pdfBtn}
+                    >
+                      {downloading === "pdf"
+                        ? "Generando PDF..."
+                        : "Descargar PDF"}
+                    </button>
 
-                  <button
-                    onClick={() => handleDownload("pencils")}
-                    disabled={downloading !== null}
-                    className={styles.pencilsBtn}
-                  >
-                    {downloading === "pencils"
-                      ? " Hoja Lápices..."
-                      : " Hoja Lápices"}
-                  </button>
+                    <button
+                      onClick={() => handleDownload("pencils")}
+                      disabled={downloading !== null || deleting}
+                      className={styles.pencilsBtn}
+                    >
+                      {downloading === "pencils"
+                        ? "Generando Lápices..."
+                        : "Hoja de Lápices"}
+                    </button>
+                  </div>
                 </div>
               </>
             )}
           </div>
         </section>
+
+        {/* Modal de confirmación de eliminación integrado */}
+        {showConfirmDelete && (
+          <div className={styles.confirmOverlay}>
+            <div className={styles.confirmBox}>
+              <div className={styles.warningIcon}>⚠️</div>
+              <h3>¿Eliminar esta plantilla?</h3>
+              <p>
+                Esta acción eliminará permanentemente la plantilla{" "}
+                <strong>&quot;{item.title}&quot;</strong> y sus capas.
+              </p>
+              <div className={styles.confirmActions}>
+                <button
+                  className={styles.cancelDeleteBtn}
+                  onClick={() => setShowConfirmDelete(false)}
+                  disabled={deleting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className={styles.confirmDeleteBtn}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Eliminando..." : "Sí, eliminar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
