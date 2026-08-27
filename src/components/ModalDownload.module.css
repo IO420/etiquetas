@@ -122,6 +122,40 @@
   padding-right: 6px;
 }
 
+.inputPersonalization {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.inputPersonalization .inputGroup {
+  flex: 1;
+}
+
+.alignGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 120px;
+}
+
+.alignGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+@media (max-width: 480px) {
+  .inputPersonalization {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .alignGroup {
+    width: 100%;
+  }
+}
+
 .inputGroup {
   display: flex;
   flex-direction: column;

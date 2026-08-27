@@ -49,7 +49,7 @@ export default function ModalDownload({
     fetchResolvedTemplate();
   }, [item.id_template]);
 
-  const handleInputChange = (index: number, newValue: string) => {
+  const handleLayerChange = (index: number, field: string, value: string) => {
     if (!templateData) return;
 
     setTemplateData((prevData) => {
@@ -57,7 +57,7 @@ export default function ModalDownload({
       const updatedLayers = [...prevData.layers];
       updatedLayers[index] = {
         ...updatedLayers[index],
-        text: newValue,
+        [field]: value,
       };
       return {
         ...prevData,
@@ -205,17 +205,39 @@ export default function ModalDownload({
                     const labelName = layer.label || `Texto ${index + 1}`;
 
                     return (
-                      <div key={index} className={styles.inputGroup}>
-                        <label htmlFor={`field-${index}`}>{labelName}</label>
-                        <input
-                          id={`field-${index}`}
-                          type="text"
-                          value={layer.text || ""}
-                          onChange={(e) =>
-                            handleInputChange(index, e.target.value)
-                          }
-                          placeholder={`Ej. ${labelName}`}
-                        />
+                      <div key={index} className={styles.inputPersonalization}>
+                        <div className={styles.inputGroup}>
+                          <label htmlFor={`field-${index}`}>{labelName}</label>
+                          <input
+                            id={`field-${index}`}
+                            type="text"
+                            value={layer.text || ""}
+                            onChange={(e) =>
+                              handleLayerChange(index, "text", e.target.value)
+                            }
+                            placeholder={`Ej. ${labelName}`}
+                          />
+                        </div>
+
+                        <div className={styles.alignGroup}>
+                          <label htmlFor={`align-${index}`}>Alineación</label>
+                          <select
+                            id={`align-${index}`}
+                            value={layer.textAlign || "left"}
+                            onChange={(e) =>
+                              handleLayerChange(
+                                index,
+                                "textAlign",
+                                e.target.value,
+                              )
+                            }
+                            className={styles.selectInput}
+                          >
+                            <option value="left">Izquierda</option>
+                            <option value="center">Centro</option>
+                            <option value="right">Derecha</option>
+                          </select>
+                        </div>
                       </div>
                     );
                   })}
