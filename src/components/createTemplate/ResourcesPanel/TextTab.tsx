@@ -9,6 +9,7 @@ export interface FontItem {
   id_font: number;
   name: string;
   fontFamily: string;
+  fileName:string;
   url: string;
 }
 
@@ -25,7 +26,6 @@ export default function TextTab() {
         setFonts(data);
 
         data.forEach((font) => {
-          console.log(font);
           loadCustomFont(font.fontFamily, font.url);
         });
       } catch (error) {
@@ -43,6 +43,7 @@ export default function TextTab() {
       type: "text",
       text: "Texto editable",
       label: "Campo de Texto",
+      fileName:font.fileName,
       fontFamily: font.fontFamily,
       fontUrl: font.url,
       fontSize: 32,

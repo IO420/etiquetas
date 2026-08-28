@@ -84,6 +84,7 @@ export default function CreateTemplatePage() {
         type: "text",
         text: item.text,
         label: item.label,
+        fileName: item.fileName,
         fontFamily: item.fontFamily,
         fontUrl: item.fontUrl,
         fontSize: item.fontSize,
@@ -294,7 +295,7 @@ export default function CreateTemplatePage() {
             type: "text",
             text: layer.text,
             label: layer.label,
-            fontFamily: layer.fontFamily,
+            textFont: layer.fileName,
             fontSize: layer.fontSize,
             color: layer.color,
             position: {

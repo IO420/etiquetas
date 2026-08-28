@@ -19,6 +19,7 @@ export interface TextLayer extends BaseLayer {
   text: string;
   label?: string;
   fontFamily: string;
+  fileName:string;
   fontUrl?: string;
   fontSize: number;
   color: string;
