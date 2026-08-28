@@ -7,12 +7,7 @@ import ModalDownload from "@/components/ModalDownload";
 import SearchLabels from "@/components/SearchLabels/SearchLabels";
 import ButtonTemplate from "@/components/ButtonTemplate/ButtonTemplate";
 
-export interface TemplateItem {
-  id_template: number;
-  title: string;
-  createdAt: string;
-  previewUrl: string;
-}
+export interface TemplateItem extends TemplatePreviewItem{}
 
 export interface PaginationMeta {
   total: number;
@@ -22,12 +17,7 @@ export interface PaginationMeta {
 }
 
 export interface ImageCardProps {
-  item: {
-    id_template: number;
-    title: string;
-    previewUrl: string;
-    createdAt?: string;
-  };
+  item: TemplatePreviewItem;
   onClick: () => void;
 }
 
@@ -36,6 +26,8 @@ export interface TemplatePreviewItem {
   title: string;
   previewUrl: string;
   createdAt?: string;
+  width: number;
+  height: number;
 }
 
 export interface ResolvedTemplate {

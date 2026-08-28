@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import styles from "./ModalDownload.module.css";
 import ImageCard from "./ImageCard";
@@ -29,7 +29,9 @@ export default function ModalDownload({
     null,
   );
 
+  const [livePreviewUrl, setLivePreviewUrl] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<PageSizeType>("LETTER");
+  const isModifiedRef = useRef<boolean>(false);
 
   useEffect(() => {
     const fetchResolvedTemplate = async () => {
@@ -49,8 +51,63 @@ export default function ModalDownload({
     fetchResolvedTemplate();
   }, [item.id_template]);
 
+  useEffect(() => {
+    if (!templateData || !isModifiedRef.current) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const payload = {
+          canvasWidth: templateData.canvasWidth,
+          canvasHeight: templateData.canvasHeight,
+          layers: templateData.layers,
+        };
+
+        const response = await axios.post(
+          "http://localhost:3001/image/label",
+          payload,
+          { responseType: "blob" },
+        );
+
+        const newBlobUrl = window.URL.createObjectURL(
+          new Blob([response.data], { type: "image/png" }),
+        );
+
+        setLivePreviewUrl((prevUrl) => {
+          if (prevUrl) window.URL.revokeObjectURL(prevUrl);
+          return newBlobUrl;
+        });
+      } catch (error) {
+        console.error("Error al generar la vista previa:", error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [templateData]);
+
+  // Limpieza de memoria al cerrar o desmontar el modal
+  useEffect(() => {
+    return () => {
+      if (livePreviewUrl) {
+        window.URL.revokeObjectURL(livePreviewUrl);
+      }
+    };
+  }, [livePreviewUrl]);
+
+  const displayItem = useMemo(() => {
+    if (!livePreviewUrl) {
+      return item
+    }
+
+    return {
+      ...item,
+      previewUrl: livePreviewUrl,
+    };
+  }, [item, livePreviewUrl, templateData]);
+
   const handleLayerChange = (index: number, field: string, value: string) => {
     if (!templateData) return;
+
+    isModifiedRef.current = true;
 
     setTemplateData((prevData) => {
       if (!prevData) return null;
@@ -183,7 +240,7 @@ export default function ModalDownload({
 
         <section className={styles.flexSection}>
           <div className={styles.imageWrapper}>
-            <ImageCard item={item} onClick={() => null} />
+            <ImageCard item={displayItem} onClick={() => null} />
           </div>
 
           <div className={styles.containerInputs}>
@@ -301,7 +358,6 @@ export default function ModalDownload({
           </div>
         </section>
 
-        {/* Modal de confirmación de eliminación integrado */}
         {showConfirmDelete && (
           <div className={styles.confirmOverlay}>
             <div className={styles.confirmBox}>

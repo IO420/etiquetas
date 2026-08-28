@@ -14,16 +14,15 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const dimensions = useMemo(() => {
-    if (!item.previewUrl) return null;
-    const match = item.previewUrl.match(/_(\d+)_(\d+)\.[a-zA-Z]+(\?.*)?$/);
-    if (match) {
-      return {
-        width: parseInt(match[1], 10),
-        height: parseInt(match[2], 10),
-      };
+    const w = (item as any).width;
+    const h = (item as any).height;
+
+    if (w && h) {
+      return { width: Number(w), height: Number(h) };
     }
+
     return null;
-  }, [item.previewUrl]);
+  }, [item]);
 
   const aspectRatio = dimensions
     ? `${dimensions.width} / ${dimensions.height}`
@@ -58,3 +57,4 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
     </div>
   );
 }
+//IO
