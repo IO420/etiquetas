@@ -136,6 +136,8 @@ export default function CreateTemplatePage() {
                   height: imgHeight,
                   rotation: layer.rotation || 0,
                   aspectRatio: imgWidth / (imgHeight || 1),
+                  flipX: layer.flipX || false,
+                  flipY: layer.flipY || false,
                 } as ImageLayer;
               }
 
@@ -508,6 +510,8 @@ export default function CreateTemplatePage() {
           width: Math.round(layer.width),
           height: Math.round(layer.height),
           rotation: layer.rotation || 0,
+          flipX: layer.flipX || false,
+          flipY: layer.flipY || false,
         };
       }),
     };
@@ -646,6 +650,26 @@ export default function CreateTemplatePage() {
     );
   }, []);
 
+  const handleToggleFlipX = useCallback((id: string) => {
+    setLayers((prev) =>
+      prev.map((layer) =>
+        layer.id === id && layer.type === "image"
+          ? { ...layer, flipX: !layer.flipX }
+          : layer,
+      ),
+    );
+  }, []);
+
+  const handleToggleFlipY = useCallback((id: string) => {
+    setLayers((prev) =>
+      prev.map((layer) =>
+        layer.id === id && layer.type === "image"
+          ? { ...layer, flipY: !layer.flipY }
+          : layer,
+      ),
+    );
+  }, []);
+
   return (
     <section className={styles.container}>
       <aside className={styles.sidebar}>
@@ -681,6 +705,8 @@ export default function CreateTemplatePage() {
         onSendToBack={handleSendToBack}
         onStepForward={handleStepForward}
         onStepBackward={handleStepBackward}
+        onToggleFlipX={handleToggleFlipX}
+        onToggleFlipY={handleToggleFlipY}
       />
     </section>
   );

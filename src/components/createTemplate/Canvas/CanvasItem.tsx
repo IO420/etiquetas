@@ -113,14 +113,25 @@ export function CanvasItem({
     >
       {/* RENDERIZADO CONDICIONAL: IMAGEN vs RECTÁNGULO vs TEXTO */}
       {item.type === "image" ? (
-        <Image
-          src={item.url}
-          alt={item.name}
-          fill
-          unoptimized
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            transform: `scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+            transformOrigin: "center center",
+            pointerEvents: "none",
+          }}
           draggable={false}
-          style={{ objectFit: "contain", pointerEvents: "none" }}
-        />
+        >
+          <Image
+            src={item.url}
+            alt={item.name || "Imagen"}
+            fill
+            style={{ objectFit: "contain" }}
+            unoptimized
+            draggable={false}
+          />
+        </div>
       ) : item.type === "rectangle" ? (
         <div
           style={{

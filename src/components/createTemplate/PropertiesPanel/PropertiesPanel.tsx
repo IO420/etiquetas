@@ -1,6 +1,6 @@
 "use client";
 
-import { PlacedLayer } from "@/types/canvas";
+import { ImageLayer, PlacedLayer } from "@/types/canvas";
 
 interface PropertiesPanelProps {
   selectedItem: PlacedLayer | undefined;
@@ -14,6 +14,8 @@ interface PropertiesPanelProps {
   onSendToBack: (id: string) => void;
   onStepForward: (id: string) => void;
   onStepBackward: (id: string) => void;
+  onToggleFlipX?: (id: string) => void;
+  onToggleFlipY?: (id: string) => void;
 }
 
 export function PropertiesPanel({
@@ -28,6 +30,8 @@ export function PropertiesPanel({
   onSendToBack,
   onStepForward,
   onStepBackward,
+  onToggleFlipX,
+  onToggleFlipY,
 }: PropertiesPanelProps) {
   const isImage = selectedItem?.type === "image";
 
@@ -40,7 +44,6 @@ export function PropertiesPanel({
         background: "white",
       }}
     >
-      <h2>Herramienta Transparencia</h2>
       {selectedItem && isImage ? (
         <div
           style={{
@@ -50,6 +53,61 @@ export function PropertiesPanel({
             marginBottom: "1rem",
           }}
         >
+          <div
+            style={{
+              marginTop: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+            }}
+          >
+            <strong>Modo Espejo:</strong>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.5rem",
+              }}
+            >
+              <button
+                onClick={() => onToggleFlipX && onToggleFlipX(selectedItem.id)}
+                style={{
+                  padding: "0.5rem",
+                  backgroundColor: (selectedItem as ImageLayer).flipX
+                    ? "#4f46e5"
+                    : "#e5e7eb",
+                  color: (selectedItem as ImageLayer).flipX
+                    ? "#ffffff"
+                    : "#000000",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                ↔ Horizontal
+              </button>
+              <button
+                onClick={() => onToggleFlipY && onToggleFlipY(selectedItem.id)}
+                style={{
+                  padding: "0.5rem",
+                  backgroundColor: (selectedItem as ImageLayer).flipY
+                    ? "#4f46e5"
+                    : "#e5e7eb",
+                  color: (selectedItem as ImageLayer).flipY
+                    ? "#ffffff"
+                    : "#000000",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                ↕ Vertical
+              </button>
+            </div>
+          </div>
+          
+          <h2>Herramienta Transparencia</h2>
+
           <button
             onClick={onTogglePicker}
             style={{

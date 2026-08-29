@@ -12,6 +12,8 @@ export interface ImageLayer extends BaseLayer {
   url: string;
   name: string;
   aspectRatio: number;
+  flipX?: boolean;
+  flipY?: boolean;
 }
 
 export interface TextLayer extends BaseLayer {
