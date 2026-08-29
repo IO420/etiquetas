@@ -111,7 +111,7 @@ export function CanvasItem({
         userSelect: isEditing ? "text" : "none",
       }}
     >
-      {/* RENDERIZADO CONDICIONAL: IMAGEN VS TEXTO */}
+      {/* RENDERIZADO CONDICIONAL: IMAGEN vs RECTÁNGULO vs TEXTO */}
       {item.type === "image" ? (
         <Image
           src={item.url}
@@ -120,6 +120,25 @@ export function CanvasItem({
           unoptimized
           draggable={false}
           style={{ objectFit: "contain", pointerEvents: "none" }}
+        />
+      ) : item.type === "rectangle" ? (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: item.fillColor || "#3b82f6",
+            borderWidth: `${item.strokeWidth || 0}px`,
+            borderColor: item.strokeColor || "transparent",
+            borderStyle:
+              item.dashPattern === "dashed"
+                ? "dashed"
+                : item.dashPattern === "dotted"
+                  ? "dotted"
+                  : "solid",
+            borderRadius: `${item.borderRadius || 0}px`,
+            boxSizing: "border-box",
+            pointerEvents: "none",
+          }}
         />
       ) : isEditing ? (
         <input
@@ -272,3 +291,4 @@ export function CanvasItem({
     </div>
   );
 }
+//IO

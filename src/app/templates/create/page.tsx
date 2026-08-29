@@ -7,7 +7,12 @@ import styles from "./create.module.css";
 import ResourcesPanel from "@/components/createTemplate/ResourcesPanel/ResourcesPanel";
 import { Canvas } from "@/components/createTemplate/Canvas/Canvas";
 import { PropertiesPanel } from "@/components/createTemplate/PropertiesPanel/PropertiesPanel";
-import { PlacedLayer, TextLayer, ImageLayer } from "@/types/canvas";
+import {
+  PlacedLayer,
+  TextLayer,
+  ImageLayer,
+  RectangleLayer,
+} from "@/types/canvas";
 import {
   getPixelColorAt,
   makeColorTransparent,
@@ -17,13 +22,154 @@ const MAX_VISIBLE_SIZE = 700;
 
 export default function CreateTemplatePage() {
   const searchParams = useSearchParams();
-  const width = Number(searchParams.get("width")) || 600;
-  const height = Number(searchParams.get("height")) || 900;
+  const templateId = searchParams.get("templateId");
 
   const [title, setTitle] = useState("Portada Personalizada");
+  const [canvasDimensions, setCanvasDimensions] = useState({
+    width: Number(searchParams.get("width")) || 600,
+    height: Number(searchParams.get("height")) || 850,
+  });
+
+  const width = canvasDimensions.width;
+  const height = canvasDimensions.height;
 
   const [layers, setLayers] = useState<PlacedLayer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!templateId) return;
+
+    const loadTemplateData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/templates/${templateId}/resolved`,
+        );
+        const data = response.data;
+
+        if (data.title) setTitle(data.title);
+
+        const currentWidth = data.canvasWidth || width;
+        const currentHeight = data.canvasHeight || height;
+
+        if (data.canvasWidth && data.canvasHeight) {
+          setCanvasDimensions({
+            width: data.canvasWidth,
+            height: data.canvasHeight,
+          });
+        }
+
+        if (data.layers && Array.isArray(data.layers)) {
+          const validLayers = data.layers.filter(
+            (layer: any) => layer !== null && layer !== undefined,
+          );
+
+          validLayers.sort(
+            (a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0),
+          );
+
+          const mappedLayers: PlacedLayer[] = validLayers
+            .map((layer: any, index: number) => {
+              const layerId = layer.id_layer
+                ? `layer-${layer.id_layer}`
+                : `layer-${Date.now()}-${index}`;
+
+              if (layer.type === "text") {
+                const textWidth = layer.width ?? 250;
+                const textHeight = layer.height ?? 60;
+
+                const rawFont = layer.textFont || "Arial";
+                const fontName = rawFont.replace(/\.[^/.]+$/, "");
+
+                if (
+                  rawFont !== "Arial" &&
+                  !document.getElementById(`font-${fontName}`)
+                ) {
+                  const fontUrl = `http://localhost:3001/uploads/fonts/${rawFont}`;
+
+                  const newStyle = document.createElement("style");
+                  newStyle.id = `font-${fontName}`;
+                  newStyle.appendChild(
+                    document.createTextNode(`
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${fontUrl}") format("truetype");
+        }
+      `),
+                  );
+                  document.head.appendChild(newStyle);
+                }
+
+                return {
+                  id: layerId,
+                  type: "text",
+                  text: layer.text ?? "",
+                  label: layer.label ?? "",
+                  fileName: rawFont,
+                  fontFamily: fontName,
+                  fontSize: layer.fontSize || 35,
+                  color: layer.color || "#000000",
+                  x: layer.positionX ?? 0,
+                  y: layer.positionY ?? 0,
+                  width: textWidth,
+                  height: textHeight,
+                  rotation: layer.rotation || 0,
+                } as TextLayer;
+              }
+
+              if (layer.type === "image") {
+                let imageUrl = layer.imageUrl || layer.url || "";
+                if (imageUrl && !imageUrl.startsWith("http")) {
+                  imageUrl = `http://localhost:3001/uploads/original/${imageUrl}`;
+                }
+
+                const imgWidth = layer.width ?? currentWidth;
+                const imgHeight = layer.height ?? currentHeight;
+
+                return {
+                  id: layerId,
+                  type: "image",
+                  url: imageUrl,
+                  name: layer.imageUrl || `Imagen ${index + 1}`,
+                  x: layer.positionX ?? 0,
+                  y: layer.positionY ?? 0,
+                  width: imgWidth,
+                  height: imgHeight,
+                  rotation: layer.rotation || 0,
+                  aspectRatio: imgWidth / (imgHeight || 1),
+                } as ImageLayer;
+              }
+
+              if (layer.type === "rectangle") {
+                return {
+                  id: layerId,
+                  type: "rectangle",
+                  x: layer.positionX ?? 0,
+                  y: layer.positionY ?? 0,
+                  width: layer.width ?? 150,
+                  height: layer.height ?? 100,
+                  fillColor: layer.fillColor || "#3b82f6",
+                  strokeColor: layer.strokeColor || "transparent",
+                  strokeWidth: layer.strokeWidth || 0,
+                  borderRadius: layer.borderRadius || 0,
+                  dashPattern: layer.dashPattern || "none",
+                  rotation: layer.rotation || 0,
+                } as RectangleLayer;
+              }
+
+              return null;
+            })
+            .filter((layer: any): layer is PlacedLayer => layer !== null);
+
+          setLayers(mappedLayers);
+        }
+      } catch (error) {
+        console.error("Error al cargar la plantilla para editar:", error);
+        alert("Ocurrió un error al cargar la plantilla.");
+      }
+    };
+
+    loadTemplateData();
+  }, [templateId]);
 
   const [interaction, setInteraction] = useState<{
     type:
@@ -98,6 +244,29 @@ export default function CreateTemplatePage() {
 
       setLayers((prev) => [...prev, newTextLayer]);
       setSelectedId(newTextLayer.id);
+    } else if (item.type === "rectangle" || item.type === "shape") {
+      const rectW = item.width || 150;
+      const rectH = item.height || 100;
+      const x = (e.clientX - rect.left) / scale - rectW / 2;
+      const y = (e.clientY - rect.top) / scale - rectH / 2;
+
+      const newRectangleLayer: RectangleLayer = {
+        id: `rect-${Date.now()}`,
+        type: "rectangle",
+        x: Math.max(0, Math.min(x, width - rectW)),
+        y: Math.max(0, Math.min(y, height - rectH)),
+        width: rectW,
+        height: rectH,
+        fillColor: item.fillColor || "#3b82f6",
+        strokeColor: item.strokeColor || "transparent",
+        strokeWidth: item.strokeWidth || 0,
+        borderRadius: item.borderRadius || 0,
+        dashPattern: item.dashPattern || "none",
+        rotation: 0,
+      };
+
+      setLayers((prev) => [...prev, newRectangleLayer]);
+      setSelectedId(newRectangleLayer.id);
     } else {
       const scaleFactor = Math.min(width / item.width, height / item.height, 1);
 
@@ -108,7 +277,7 @@ export default function CreateTemplatePage() {
       const y = (e.clientY - rect.top) / scale - imgHeight / 2;
 
       const newImageLayer: ImageLayer = {
-        id: `${item.id_image}-${Date.now()}`,
+        id: `${item.id_image || "img"}-${Date.now()}`,
         type: "image",
         url: item.url,
         name: item.name,
@@ -204,13 +373,16 @@ export default function CreateTemplatePage() {
 
             if (interaction.type === "resize") {
               newW = Math.max(30, interaction.initialW + deltaX);
-              newH = newW / ar;
+              newH =
+                item.type === "image"
+                  ? newW / ar
+                  : Math.max(30, interaction.initialH + deltaY);
               return { ...item, width: newW, height: newH };
             }
 
             if (interaction.type === "resizeL") {
               newW = Math.max(30, interaction.initialW - deltaX);
-              newH = newW / ar;
+              newH = item.type === "image" ? newW / ar : item.height;
               const actualDeltaX = interaction.initialW - newW;
               return {
                 ...item,
@@ -222,7 +394,7 @@ export default function CreateTemplatePage() {
 
             if (interaction.type === "resizeT") {
               newH = Math.max(30, interaction.initialH - deltaY);
-              newW = newH * ar;
+              newW = item.type === "image" ? newH * ar : item.width;
               const actualDeltaY = interaction.initialH - newH;
               return {
                 ...item,
@@ -234,7 +406,10 @@ export default function CreateTemplatePage() {
 
             if (interaction.type === "resizeLT") {
               newW = Math.max(30, interaction.initialW - deltaX);
-              newH = newW / ar;
+              newH =
+                item.type === "image"
+                  ? newW / ar
+                  : Math.max(30, interaction.initialH - deltaY);
               const actualDeltaX = interaction.initialW - newW;
               const actualDeltaY = interaction.initialH - newH;
               return {
@@ -289,54 +464,71 @@ export default function CreateTemplatePage() {
         width,
         height,
       },
-      layers: layers.map((layer) => {
+      layers: layers.map((layer, index) => {
         if (layer.type === "text") {
           return {
             type: "text",
+            order_index: index,
             text: layer.text,
             label: layer.label,
             textFont: layer.fileName,
             fontSize: layer.fontSize,
             color: layer.color,
-            position: {
-              x: Math.round(layer.x),
-              y: Math.round(layer.y),
-            },
-            size: {
-              width: Math.round(layer.width),
-              height: Math.round(layer.height),
-            },
+            positionX: Math.round(layer.x),
+            positionY: Math.round(layer.y),
+            width: Math.round(layer.width),
+            height: Math.round(layer.height),
+            rotation: layer.rotation || 0,
+          };
+        }
+
+        if (layer.type === "rectangle") {
+          return {
+            type: "rectangle",
+            order_index: index,
+            positionX: Math.round(layer.x),
+            positionY: Math.round(layer.y),
+            width: Math.round(layer.width),
+            height: Math.round(layer.height),
+            fillColor: layer.fillColor,
+            strokeColor: layer.strokeColor,
+            strokeWidth: layer.strokeWidth,
+            borderRadius: layer.borderRadius,
+            dashPattern: layer.dashPattern,
             rotation: layer.rotation || 0,
           };
         }
 
         return {
           type: "image",
+          order_index: index,
           name: layer.name,
-          url: layer.url,
-          position: {
-            x: Math.round(layer.x),
-            y: Math.round(layer.y),
-          },
-          size: {
-            width: Math.round(layer.width),
-            height: Math.round(layer.height),
-          },
+          positionX: Math.round(layer.x),
+          positionY: Math.round(layer.y),
+          width: Math.round(layer.width),
+          height: Math.round(layer.height),
           rotation: layer.rotation || 0,
         };
       }),
     };
 
-    console.log("Payload enviado con Axios:", payload);
-
     try {
-      const response = await axios.post(
-        "http://localhost:3001/templates",
-        payload,
-      );
+      let response;
+      if (templateId) {
+        response = await axios.put(
+          `http://localhost:3001/templates/${templateId}`,
+          payload,
+        );
+      } else {
+        response = await axios.post("http://localhost:3001/templates", payload);
+      }
 
-      if (response.status === 201 || response.status === 200) {
-        alert("¡Plantilla guardada correctamente!");
+      if (response.status === 200 || response.status === 201) {
+        alert(
+          templateId
+            ? "¡Plantilla actualizada correctamente!"
+            : "¡Plantilla creada correctamente!",
+        );
       }
     } catch (error) {
       console.error("Error al guardar la plantilla:", error);
@@ -346,6 +538,15 @@ export default function CreateTemplatePage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
       if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
         handleDeleteLayer(selectedId);
       }
@@ -484,3 +685,4 @@ export default function CreateTemplatePage() {
     </section>
   );
 }
+//IO

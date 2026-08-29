@@ -5,6 +5,7 @@ import axios from "axios";
 import styles from "./ModalDownload.module.css";
 import ImageCard from "./ImageCard";
 import { TemplatePreviewItem, ResolvedTemplate } from "@/app/(front)/page";
+import { useRouter } from "next/navigation";
 
 interface ModalDownloadProps {
   item: TemplatePreviewItem;
@@ -32,6 +33,8 @@ export default function ModalDownload({
   const [livePreviewUrl, setLivePreviewUrl] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<PageSizeType>("LETTER");
   const isModifiedRef = useRef<boolean>(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchResolvedTemplate = async () => {
@@ -84,7 +87,7 @@ export default function ModalDownload({
     return () => clearTimeout(timer);
   }, [templateData]);
 
-  // Limpieza de memoria al cerrar o desmontar el modal
+  // memory clean
   useEffect(() => {
     return () => {
       if (livePreviewUrl) {
@@ -95,7 +98,7 @@ export default function ModalDownload({
 
   const displayItem = useMemo(() => {
     if (!livePreviewUrl) {
-      return item
+      return item;
     }
 
     return {
@@ -201,6 +204,10 @@ export default function ModalDownload({
     }
   };
 
+  const handleEditInCanvas = () => {
+    router.push(`/templates/create?templateId=${item.id_template}`);
+  };
+
   return (
     <div className={styles.backdrop} onClick={onClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -234,6 +241,26 @@ export default function ModalDownload({
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               <line x1="10" y1="11" x2="10" y2="17"></line>
               <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+          <button
+            onClick={handleEditInCanvas}
+            className={styles.editIconButton}
+            title="Editar plantilla"
+            disabled={downloading !== null || deleting}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
           </button>
         </div>

@@ -368,3 +368,28 @@
     padding: 1.25rem;
   }
 }
+
+.editIconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editIconButton:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.editIconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

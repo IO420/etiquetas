@@ -19,10 +19,19 @@ export interface TextLayer extends BaseLayer {
   text: string;
   label?: string;
   fontFamily: string;
-  fileName:string;
+  fileName: string;
   fontUrl?: string;
   fontSize: number;
   color: string;
 }
 
-export type PlacedLayer = ImageLayer | TextLayer;
+export interface RectangleLayer extends BaseLayer {
+  type: "rectangle";
+  fillColor?: string;
+  strokeColor?: string;
+  strokeWidth?: number;
+  borderRadius?: number;
+  dashPattern?: string;
+}
+
+export type PlacedLayer = ImageLayer | TextLayer | RectangleLayer;
