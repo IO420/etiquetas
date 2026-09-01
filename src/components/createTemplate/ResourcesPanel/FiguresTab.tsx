@@ -9,9 +9,9 @@ export default function FiguresTab() {
         width: 150,
         height: 100,
         fillColor: "#3b82f6",
-        strokeColor: "transparent",
-        strokeWidth: "0",
-        borderRadius: 0,
+        strokeColor: "black",
+        strokeWidth: "2",
+        borderRadius: 30,
         dashPattern: "none",
       })
     );

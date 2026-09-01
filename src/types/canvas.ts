@@ -25,6 +25,8 @@ export interface TextLayer extends BaseLayer {
   fontUrl?: string;
   fontSize: number;
   color: string;
+  strokeColor:string;
+  strokeWidth:string;
 }
 
 export interface RectangleLayer extends BaseLayer {

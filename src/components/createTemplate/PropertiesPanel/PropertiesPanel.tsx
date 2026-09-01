@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageLayer, PlacedLayer, RectangleLayer } from "@/types/canvas";
+import { ImageLayer, PlacedLayer, RectangleLayer, TextLayer } from "@/types/canvas";
 
 interface PropertiesPanelProps {
   selectedItem: PlacedLayer | undefined;
@@ -18,6 +18,7 @@ interface PropertiesPanelProps {
   onToggleFlipY?: (id: string) => void;
 
   onUpdateRectangle?: (id: string, updates: Partial<RectangleLayer>) => void;
+  onUpdateTextProps?: (id: string, updates: Partial<TextLayer>) => void;
 }
 
 export function PropertiesPanel({
@@ -36,9 +37,11 @@ export function PropertiesPanel({
   onToggleFlipY,
 
   onUpdateRectangle,
+  onUpdateTextProps,
 }: PropertiesPanelProps) {
   const isImage = selectedItem?.type === "image";
   const isRectangle = selectedItem?.type === "rectangle";
+  const isText = selectedItem?.type === "text";
 
   return (
     <aside
@@ -252,6 +255,193 @@ export function PropertiesPanel({
                   style={{ width: "100%" }}
                 />
               </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Patrón de Guiones (Dash Pattern):
+                </label>
+                <select
+                  value={rect.dashPattern || ""}
+                  onChange={(e) =>
+                    onUpdateRectangle(rect.id, {
+                      dashPattern: e.target.value,
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    padding: "0 8px",
+                    backgroundColor: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="">Línea Continua (Sólida)</option>
+                  <option value="5,5">Guiones Estándar (5, 5)</option>
+                  <option value="10,5">Guiones Largos (10, 5)</option>
+                  <option value="2,2">Punteado Fino (2, 2)</option>
+                  <option value="10,5,2,5">Guión y Punto (10, 5, 2, 5)</option>
+                </select>
+              </div>
+            </div>
+          );
+        })()}
+
+      {selectedItem &&
+        isText &&
+        onUpdateTextProps &&
+        (() => {
+          const textLayer = selectedItem as TextLayer;
+          return (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <h2>Estilos de Texto</h2>
+
+              {/* CAMPO AÑADIDO: Permite la edición en tiempo real del texto */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Contenido del Texto:
+                </label>
+                <input
+                  type="text"
+                  value={textLayer.text || ""}
+                  onChange={(e) =>
+                    onUpdateTextProps(textLayer.id, {
+                      text: e.target.value,
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    padding: "0 8px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Tamaño de Fuente (px):
+                </label>
+                <input
+                  type="number"
+                  min="8"
+                  max="200"
+                  value={textLayer.fontSize || 32}
+                  onChange={(e) =>
+                    onUpdateTextProps(textLayer.id, {
+                      fontSize: Number(e.target.value),
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    padding: "0 8px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Color de Texto:
+                </label>
+                <input
+                  type="color"
+                  value={textLayer.color || "#000000"}
+                  onChange={(e) =>
+                    onUpdateTextProps(textLayer.id, { color: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    cursor: "pointer",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Color del Borde de Texto (Stroke):
+                </label>
+                <input
+                  type="color"
+                  value={
+                    !textLayer.strokeColor || textLayer.strokeColor === "transparent"
+                      ? "#ffffff"
+                      : textLayer.strokeColor
+                  }
+                  onChange={(e) =>
+                    onUpdateTextProps(textLayer.id, { strokeColor: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    cursor: "pointer",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: "12px", display: "block" }}>
+                  Grosor de Borde (Stroke Width): {Number(textLayer.strokeWidth) || 0}px
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={Number(textLayer.strokeWidth) || 0}
+                  onChange={(e) =>
+                    onUpdateTextProps(textLayer.id, {
+                      strokeWidth: e.target.value,
+                    })
+                  }
+                  style={{ width: "100%" }}
+                />
+              </div>
             </div>
           );
         })()}
@@ -423,4 +613,3 @@ export function PropertiesPanel({
     </aside>
   );
 }
-//IO

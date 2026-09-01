@@ -113,6 +113,8 @@ export default function CreateTemplatePage() {
                   width: textWidth,
                   height: textHeight,
                   rotation: layer.rotation || 0,
+                  strokeColor: layer.strokeColor,
+                  strokeWidth: layer.strokeWidth,
                 } as TextLayer;
               }
 
@@ -242,6 +244,8 @@ export default function CreateTemplatePage() {
         width: item.width,
         height: item.height,
         rotation: 0,
+        strokeColor: item.strokeColor,
+        strokeWidth: item.strokeWidth,
       };
 
       setLayers((prev) => [...prev, newTextLayer]);
@@ -372,6 +376,8 @@ export default function CreateTemplatePage() {
 
             let newW = interaction.initialW;
             let newH = interaction.initialH;
+            let newX = item.x;
+            let newY = item.y;
 
             if (interaction.type === "resize") {
               newW = Math.max(30, interaction.initialW + deltaX);
@@ -379,34 +385,17 @@ export default function CreateTemplatePage() {
                 item.type === "image"
                   ? newW / ar
                   : Math.max(30, interaction.initialH + deltaY);
-              return { ...item, width: newW, height: newH };
-            }
-
-            if (interaction.type === "resizeL") {
+            } else if (interaction.type === "resizeL") {
               newW = Math.max(30, interaction.initialW - deltaX);
               newH = item.type === "image" ? newW / ar : item.height;
               const actualDeltaX = interaction.initialW - newW;
-              return {
-                ...item,
-                x: interaction.initialX + actualDeltaX,
-                width: newW,
-                height: newH,
-              };
-            }
-
-            if (interaction.type === "resizeT") {
+              newX = interaction.initialX + actualDeltaX;
+            } else if (interaction.type === "resizeT") {
               newH = Math.max(30, interaction.initialH - deltaY);
               newW = item.type === "image" ? newH * ar : item.width;
               const actualDeltaY = interaction.initialH - newH;
-              return {
-                ...item,
-                y: interaction.initialY + actualDeltaY,
-                width: newW,
-                height: newH,
-              };
-            }
-
-            if (interaction.type === "resizeLT") {
+              newY = interaction.initialY + actualDeltaY;
+            } else if (interaction.type === "resizeLT") {
               newW = Math.max(30, interaction.initialW - deltaX);
               newH =
                 item.type === "image"
@@ -414,14 +403,17 @@ export default function CreateTemplatePage() {
                   : Math.max(30, interaction.initialH - deltaY);
               const actualDeltaX = interaction.initialW - newW;
               const actualDeltaY = interaction.initialH - newH;
-              return {
-                ...item,
-                x: interaction.initialX + actualDeltaX,
-                y: interaction.initialY + actualDeltaY,
-                width: newW,
-                height: newH,
-              };
+              newX = interaction.initialX + actualDeltaX;
+              newY = interaction.initialY + actualDeltaY;
             }
+
+            return {
+              ...item,
+              x: newX,
+              y: newY,
+              width: newW,
+              height: newH,
+            } as PlacedLayer;
           }
 
           if (interaction.type === "rotate") {
@@ -683,6 +675,20 @@ export default function CreateTemplatePage() {
     [],
   );
 
+  const handleUpdateTextProps = useCallback(
+    (id: string, updates: Partial<TextLayer>) => {
+      setLayers((prev) =>
+        prev.map((layer) => {
+          if (layer.id === id && layer.type === "text") {
+            return { ...layer, ...updates };
+          }
+          return layer;
+        }),
+      );
+    },
+    [],
+  );
+
   return (
     <section className={styles.container}>
       <aside className={styles.sidebar}>
@@ -720,11 +726,8 @@ export default function CreateTemplatePage() {
         onStepBackward={handleStepBackward}
         onToggleFlipX={handleToggleFlipX}
         onToggleFlipY={handleToggleFlipY}
-        onUpdateRectangle={(id, updates) => {
-          setLayers((prev) =>
-            prev.map((l) => (l.id === id ? { ...l, ...updates } : l)),
-          );
-        }}
+        onUpdateRectangle={handleUpdateRectangle}
+        onUpdateTextProps={handleUpdateTextProps}
       />
     </section>
   );

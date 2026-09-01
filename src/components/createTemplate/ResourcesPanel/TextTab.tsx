@@ -9,7 +9,7 @@ export interface FontItem {
   id_font: number;
   name: string;
   fontFamily: string;
-  fileName:string;
+  fileName: string;
   url: string;
 }
 
@@ -43,13 +43,13 @@ export default function TextTab() {
       type: "text",
       text: "Texto editable",
       label: "Campo de Texto",
-      fileName:font.fileName,
+      fileName: font.fileName,
       fontFamily: font.fontFamily,
       fontUrl: font.url,
-      fontSize: 32,
+      fontSize: 48,
       color: "#000000",
-      width: 250,
-      height: 50,
+      width: 350,
+      height: 70,
     };
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
     e.dataTransfer.effectAllowed = "copy";

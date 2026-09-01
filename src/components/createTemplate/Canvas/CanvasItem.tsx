@@ -132,24 +132,24 @@ export function CanvasItem({
           />
         </div>
       ) : item.type === "rectangle" ? (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            backgroundColor: item.fillColor || "#3b82f6",
-            borderWidth: `${item.strokeWidth || 0}px`,
-            borderColor: item.strokeColor || "transparent",
-            borderStyle:
-              item.dashPattern === "dashed"
-                ? "dashed"
-                : item.dashPattern === "dotted"
-                  ? "dotted"
-                  : "solid",
-            borderRadius: `${item.borderRadius || 0}px`,
-            boxSizing: "border-box",
-            pointerEvents: "none",
-          }}
-        />
+        <svg
+          width="100%"
+          height="100%"
+          style={{ overflow: "visible", pointerEvents: "none" }}
+        >
+          <rect
+            x="0"
+            y="0"
+            width={item.width}
+            height={item.height}
+            rx={item.borderRadius || 0}
+            ry={item.borderRadius || 0}
+            fill={item.fillColor || "transparent"}
+            stroke={item.strokeColor || "transparent"}
+            strokeWidth={item.strokeWidth || 0}
+            strokeDasharray={item.dashPattern || "none"}
+          />
+        </svg>
       ) : isEditing ? (
         <input
           ref={inputRef}
