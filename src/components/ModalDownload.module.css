@@ -170,6 +170,7 @@
 
 .inputGroup input,
 .selectInput {
+  background-color: white;
   width: 100%;
   padding: 10px 14px;
   border: 1px solid #cbd5e1;

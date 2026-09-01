@@ -111,7 +111,6 @@ export function CanvasItem({
         userSelect: isEditing ? "text" : "none",
       }}
     >
-      {/* RENDERIZADO CONDICIONAL: IMAGEN vs RECTÁNGULO vs TEXTO */}
       {item.type === "image" ? (
         <div
           style={{
@@ -194,10 +193,8 @@ export function CanvasItem({
         </div>
       )}
 
-      {/* CONTROLES Y MANIJAS DE SELECCIÓN (Resize & Rotate) */}
       {isSelected && !isPickingColor && !isEditing && (
         <>
-          {/* Esquina Inferior Derecha */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -217,7 +214,6 @@ export function CanvasItem({
             }}
           />
 
-          {/* Esquina Inferior Izquierda */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -237,7 +233,6 @@ export function CanvasItem({
             }}
           />
 
-          {/* Esquina Superior Derecha */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -257,7 +252,6 @@ export function CanvasItem({
             }}
           />
 
-          {/* Esquina Superior Izquierda */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -277,7 +271,6 @@ export function CanvasItem({
             }}
           />
 
-          {/* Control de Rotación */}
           <div
             onMouseDown={(e) => {
               e.stopPropagation();

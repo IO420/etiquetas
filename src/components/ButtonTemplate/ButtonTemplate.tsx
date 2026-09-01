@@ -25,9 +25,9 @@ const TEMPLATE_SIZES = [
   },
   {
     id: "square",
-    name: "Cuadrada",
+    name: "Etiqueta de datos",
     width: 600,
-    height: 600,
+    height: 300,
   },
 ];
 

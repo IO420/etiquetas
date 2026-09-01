@@ -494,7 +494,7 @@ export default function CreateTemplatePage() {
             height: Math.round(layer.height),
             fillColor: layer.fillColor,
             strokeColor: layer.strokeColor,
-            strokeWidth: layer.strokeWidth,
+            strokeWidth: String(layer.strokeWidth),
             borderRadius: layer.borderRadius,
             dashPattern: layer.dashPattern,
             rotation: layer.rotation || 0,
@@ -670,6 +670,19 @@ export default function CreateTemplatePage() {
     );
   }, []);
 
+  const handleUpdateRectangle = useCallback(
+    (id: string, updates: Partial<RectangleLayer>) => {
+      setLayers((prevLayers) =>
+        prevLayers.map((layer) =>
+          layer.id === id && layer.type === "rectangle"
+            ? { ...layer, ...updates }
+            : layer,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <section className={styles.container}>
       <aside className={styles.sidebar}>
@@ -707,6 +720,11 @@ export default function CreateTemplatePage() {
         onStepBackward={handleStepBackward}
         onToggleFlipX={handleToggleFlipX}
         onToggleFlipY={handleToggleFlipY}
+        onUpdateRectangle={(id, updates) => {
+          setLayers((prev) =>
+            prev.map((l) => (l.id === id ? { ...l, ...updates } : l)),
+          );
+        }}
       />
     </section>
   );

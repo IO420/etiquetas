@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageLayer, PlacedLayer } from "@/types/canvas";
+import { ImageLayer, PlacedLayer, RectangleLayer } from "@/types/canvas";
 
 interface PropertiesPanelProps {
   selectedItem: PlacedLayer | undefined;
@@ -16,6 +16,8 @@ interface PropertiesPanelProps {
   onStepBackward: (id: string) => void;
   onToggleFlipX?: (id: string) => void;
   onToggleFlipY?: (id: string) => void;
+
+  onUpdateRectangle?: (id: string, updates: Partial<RectangleLayer>) => void;
 }
 
 export function PropertiesPanel({
@@ -32,8 +34,11 @@ export function PropertiesPanel({
   onStepBackward,
   onToggleFlipX,
   onToggleFlipY,
+
+  onUpdateRectangle,
 }: PropertiesPanelProps) {
   const isImage = selectedItem?.type === "image";
+  const isRectangle = selectedItem?.type === "rectangle";
 
   return (
     <aside
@@ -44,7 +49,7 @@ export function PropertiesPanel({
         background: "white",
       }}
     >
-      {selectedItem && isImage ? (
+      {selectedItem && isImage && (
         <div
           style={{
             display: "flex",
@@ -105,7 +110,7 @@ export function PropertiesPanel({
               </button>
             </div>
           </div>
-          
+
           <h2>Herramienta Transparencia</h2>
 
           <button
@@ -138,11 +143,122 @@ export function PropertiesPanel({
             />
           </div>
         </div>
-      ) : (
-        <p style={{ fontSize: "13px", color: "#6b7280" }}>
-          {selectedItem
-            ? "Las herramientas de transparencia solo aplican a imágenes."
-            : "Selecciona una imagen para quitarle el fondo."}
+      )}
+
+      {selectedItem &&
+        isRectangle &&
+        onUpdateRectangle &&
+        (() => {
+          const rect = selectedItem as RectangleLayer;
+          return (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <h2>Estilos de Rectángulo</h2>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Color de Relleno:
+                </label>
+                <input
+                  type="color"
+                  value={rect.fillColor || "#3b82f6"}
+                  onChange={(e) =>
+                    onUpdateRectangle(rect.id, { fillColor: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    cursor: "pointer",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Color de Borde:
+                </label>
+                <input
+                  type="color"
+                  value={
+                    !rect.strokeColor || rect.strokeColor === "transparent"
+                      ? "#000000"
+                      : rect.strokeColor
+                  }
+                  onChange={(e) =>
+                    onUpdateRectangle(rect.id, { strokeColor: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    height: "36px",
+                    cursor: "pointer",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: "12px", display: "block" }}>
+                  Grosor de Borde: {Number(rect.strokeWidth) || 0}px
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="20"
+                  value={Number(rect.strokeWidth) || 0}
+                  onChange={(e) =>
+                    onUpdateRectangle(rect.id, {
+                      strokeWidth: Number(e.target.value),
+                    })
+                  }
+                  style={{ width: "100%" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: "12px", display: "block" }}>
+                  Radio de Borde: {Number(rect.borderRadius) || 0}px
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Number(rect.borderRadius) || 0}
+                  onChange={(e) =>
+                    onUpdateRectangle(rect.id, {
+                      borderRadius: Number(e.target.value),
+                    })
+                  }
+                  style={{ width: "100%" }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
+      {!selectedItem && (
+        <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "1rem" }}>
+          Selecciona un elemento para editar sus propiedades.
         </p>
       )}
 
@@ -163,42 +279,44 @@ export function PropertiesPanel({
         Guardar Plantilla
       </button>
 
-      {selectedItem && (
-        <div>
-          <p>
-            <strong>Rotación:</strong> {selectedItem.rotation || 0}°
-          </p>
-        </div>
-      )}
-
       <h2>Propiedades</h2>
       <div>
         {selectedItem ? (
           <div>
-            <p>
+            <p style={{ margin: "4px 0" }}>
               <strong>Tipo:</strong>{" "}
-              {selectedItem.type === "image" ? "Imagen" : "Texto"}
+              {selectedItem.type === "image"
+                ? "Imagen"
+                : selectedItem.type === "rectangle"
+                  ? "Rectángulo"
+                  : "Texto"}
             </p>
+
             {selectedItem.type === "image" && (
-              <p>
+              <p style={{ margin: "4px 0" }}>
                 <strong>Nombre:</strong> {selectedItem.name}
               </p>
             )}
+
             {selectedItem.type === "text" && (
               <>
-                <p>
+                <p style={{ margin: "4px 0" }}>
                   <strong>Fuente:</strong> {selectedItem.fontFamily}
                 </p>
-                <p>
+                <p style={{ margin: "4px 0" }}>
                   <strong>Texto:</strong> {selectedItem.text}
                 </p>
               </>
             )}
-            <p>
+
+            <p style={{ margin: "4px 0" }}>
               <strong>Ancho:</strong> {Math.round(selectedItem.width)}px
             </p>
-            <p>
+            <p style={{ margin: "4px 0" }}>
               <strong>Alto:</strong> {Math.round(selectedItem.height)}px
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              <strong>Rotación:</strong> {selectedItem.rotation || 0}°
             </p>
 
             <div
@@ -287,14 +405,22 @@ export function PropertiesPanel({
                   cursor: "pointer",
                 }}
               >
-                Eliminar {selectedItem.type === "image" ? "Imagen" : "Texto"}
+                Eliminar{" "}
+                {selectedItem.type === "image"
+                  ? "Imagen"
+                  : selectedItem.type === "rectangle"
+                    ? "Rectángulo"
+                    : "Texto"}
               </button>
             </div>
           </div>
         ) : (
-          <p>Selecciona un elemento para editarlo.</p>
+          <p style={{ fontSize: "13px", color: "#6b7280" }}>
+            Selecciona un elemento para ver sus opciones.
+          </p>
         )}
       </div>
     </aside>
   );
 }
+//IO
