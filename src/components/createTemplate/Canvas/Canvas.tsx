@@ -61,6 +61,7 @@ export function Canvas({
           transform: `scale(${scale})`,
           position: "relative",
           backgroundColor: "#ffffff",
+          overflow:"hidden"
         }}
       >
         {items.map((item) => (

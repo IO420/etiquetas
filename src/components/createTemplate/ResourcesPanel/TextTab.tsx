@@ -50,6 +50,8 @@ export default function TextTab() {
       color: "#000000",
       width: 350,
       height: 70,
+      strokeWidth: "0",
+      strokeColor: "transparent",
     };
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
     e.dataTransfer.effectAllowed = "copy";

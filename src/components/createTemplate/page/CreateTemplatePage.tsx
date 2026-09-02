@@ -473,6 +473,9 @@ export default function CreateTemplatePage() {
             width: Math.round(layer.width),
             height: Math.round(layer.height),
             rotation: layer.rotation || 0,
+            strokeColor: layer.strokeColor,
+            strokeWidth: layer.strokeWidth ? String(layer.strokeWidth):null,
+            // dashPattern: layer.dashPattern,
           };
         }
 

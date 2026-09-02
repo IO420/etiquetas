@@ -436,7 +436,7 @@ export function PropertiesPanel({
                   value={Number(textLayer.strokeWidth) || 0}
                   onChange={(e) =>
                     onUpdateTextProps(textLayer.id, {
-                      strokeWidth: e.target.value,
+                      strokeWidth: Number(e.target.value),
                     })
                   }
                   style={{ width: "100%" }}
