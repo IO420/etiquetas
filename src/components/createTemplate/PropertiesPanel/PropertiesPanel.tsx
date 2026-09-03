@@ -1,6 +1,11 @@
 "use client";
 
-import { ImageLayer, PlacedLayer, RectangleLayer, TextLayer } from "@/types/canvas";
+import {
+  ImageLayer,
+  PlacedLayer,
+  RectangleLayer,
+  TextLayer,
+} from "@/types/canvas";
 
 interface PropertiesPanelProps {
   selectedItem: PlacedLayer | undefined;
@@ -52,6 +57,23 @@ export function PropertiesPanel({
         background: "white",
       }}
     >
+      <button
+        onClick={onSave}
+        style={{
+          width: "100%",
+          padding: "0.75rem",
+          backgroundColor: "#16a34a",
+          color: "#fff",
+          fontWeight: "bold",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          marginBottom: "1rem",
+        }}
+      >
+        Guardar Plantilla
+      </button>
+
       {selectedItem && isImage && (
         <div
           style={{
@@ -408,12 +430,15 @@ export function PropertiesPanel({
                 <input
                   type="color"
                   value={
-                    !textLayer.strokeColor || textLayer.strokeColor === "transparent"
+                    !textLayer.strokeColor ||
+                    textLayer.strokeColor === "transparent"
                       ? "#ffffff"
                       : textLayer.strokeColor
                   }
                   onChange={(e) =>
-                    onUpdateTextProps(textLayer.id, { strokeColor: e.target.value })
+                    onUpdateTextProps(textLayer.id, {
+                      strokeColor: e.target.value,
+                    })
                   }
                   style={{
                     width: "100%",
@@ -427,7 +452,8 @@ export function PropertiesPanel({
 
               <div>
                 <label style={{ fontSize: "12px", display: "block" }}>
-                  Grosor de Borde (Stroke Width): {Number(textLayer.strokeWidth) || 0}px
+                  Grosor de Borde (Stroke Width):{" "}
+                  {Number(textLayer.strokeWidth) || 0}px
                 </label>
                 <input
                   type="range"
@@ -451,23 +477,6 @@ export function PropertiesPanel({
           Selecciona un elemento para editar sus propiedades.
         </p>
       )}
-
-      <button
-        onClick={onSave}
-        style={{
-          width: "100%",
-          padding: "0.75rem",
-          backgroundColor: "#16a34a",
-          color: "#fff",
-          fontWeight: "bold",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          marginBottom: "1rem",
-        }}
-      >
-        Guardar Plantilla
-      </button>
 
       <h2>Propiedades</h2>
       <div>
