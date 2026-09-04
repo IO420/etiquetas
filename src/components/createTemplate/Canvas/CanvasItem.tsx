@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { PlacedLayer, ImageLayer } from "@/types/canvas";
+import { CanvasText } from "./CanvasText";
 
 interface CanvasItemProps {
   item: PlacedLayer;
@@ -175,22 +176,7 @@ export function CanvasItem({
           }}
         />
       ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            fontFamily: item.fontFamily,
-            fontSize: `${item.fontSize}px`,
-            color: item.color,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
-          }}
-        >
-          {item.text}
-        </div>
+        <CanvasText item={item} />
       )}
 
       {isSelected && !isPickingColor && !isEditing && (
