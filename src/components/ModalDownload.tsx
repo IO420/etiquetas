@@ -36,6 +36,8 @@ export default function ModalDownload({
 
   const router = useRouter();
 
+  const [cloning, setCloning] = useState<boolean>(false);
+
   useEffect(() => {
     const fetchResolvedTemplate = async () => {
       try {
@@ -208,6 +210,23 @@ export default function ModalDownload({
     router.push(`/templates/create?templateId=${item.id_template}`);
   };
 
+  const handleClone = async () => {
+    try {
+      setCloning(true);
+      await axios.post(
+        `http://localhost:3001/templates/${item.id_template}/clone`,
+      );
+      alert("Plantilla clonada exitosamente");
+      onClick();
+      window.location.reload();
+    } catch (error) {
+      console.error("Error al clonar la plantilla:", error);
+      alert("Ocurrió un error al clonar la plantilla");
+    } finally {
+      setCloning(false);
+    }
+  };
+
   return (
     <div className={styles.backdrop} onClick={onClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -221,6 +240,7 @@ export default function ModalDownload({
 
         <div className={styles.header}>
           <h2>{item.title}</h2>
+
           <button
             onClick={() => setShowConfirmDelete(true)}
             className={styles.deleteIconButton}
@@ -243,6 +263,28 @@ export default function ModalDownload({
               <line x1="14" y1="11" x2="14" y2="17"></line>
             </svg>
           </button>
+
+          <button
+            onClick={handleClone}
+            className={styles.editIconButton}
+            title="Clonar plantilla"
+            disabled={downloading !== null || deleting || cloning}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+
           <button
             onClick={handleEditInCanvas}
             className={styles.editIconButton}
